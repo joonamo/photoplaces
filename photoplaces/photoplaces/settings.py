@@ -36,6 +36,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
     'south',
     'photoplaces_web'
 )
@@ -59,9 +60,10 @@ WSGI_APPLICATION = 'photoplaces.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.contrib.gis.db.backends.mysql',
         'OPTIONS': {
             'read_default_file': 'photoplaces/private.cnf',
+            'init_command': 'SET storage_engine=MyISAM',
         },
     }
 }

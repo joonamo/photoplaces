@@ -5,3 +5,6 @@ lib
 .Python
 start_tunnel.sh
 start_dev.sh
+useful commands
+temp
+*.pyc

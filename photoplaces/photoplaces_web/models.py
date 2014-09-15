@@ -53,3 +53,17 @@ class PhotoLocationEntry(models.Model):
             flickr_server_id = server,
             photo_url = url_body + ".jpg",
             photo_thumb_url = url_body + "_t.jpg")
+
+    @staticmethod
+    def box_contains(x0, y0, x1, y1, srid = None):
+        if srid == None:
+            srid = 4326 # WGS84!
+
+        wkt = "POLYGON((" + \
+            str(x0) + " " + str(y0) + ", "+\
+            str(x0) + " " + str(y1) + ", "+\
+            str(x1) + " " + str(y1) + ", "+\
+            str(x1) + " " + str(y0) + ", "+\
+            str(x0) + " " + str(y0) + "))"
+        box = GEOSGeometry(wkt, srid)
+        return PhotoLocationEntry.objects.filter(location__contained = box)

@@ -8,3 +8,5 @@ start_dev.sh
 useful commands
 temp
 *.pyc
+photoplaces/private/mysql.cnf
+photoplaces/private/passwords.py

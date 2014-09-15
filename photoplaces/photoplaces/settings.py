@@ -10,6 +10,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import private.passwords
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
@@ -18,6 +19,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '7fo6g-f@2n15-zpw^$vpso7nr+00w6pgxd8cm!cdpdo^$48+!-'
+FLICKR_API_KEY = private.passwords.flickr_api_key
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -62,7 +64,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.mysql',
         'OPTIONS': {
-            'read_default_file': 'photoplaces/private.cnf',
+            'read_default_file': 'private/mysql.cnf',
             'init_command': 'SET storage_engine=MyISAM',
         },
     }

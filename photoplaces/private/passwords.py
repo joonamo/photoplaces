@@ -1,0 +1,1 @@
+flickr_api_key = "soooooo secret"

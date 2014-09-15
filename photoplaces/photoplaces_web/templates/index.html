@@ -48,23 +48,19 @@
         var to_remove = [];
 
         // What to remove
-        console.log("trying to remove");
         $.each(markers, function(idx, marker){
-            console.log("testing " + idx); 
             if (!bounds.contains(marker.getPosition()))
             {
-                console.log("i'd like to delete " + idx);
                 marker.setMap(null);
                 to_remove.push(idx);
             }
         });
         $.each(to_remove, function(i, idx){
             delete markers[idx];
-            console.log("removing " + idx);
         })
 
         $.getJSON("/rest/photos_box_contains?x0=" + x0 + "&y0=" + y0 + "&x1=" + x1 + "&y1=" + y1, function(data){
-            console.log(data.length);
+            console.log("got " +data.length);
             $.each(data, function(idx, photo_info){
                 if (!markers[photo_info.photo_id]) {
                     var loc = new google.maps.LatLng(photo_info.y, photo_info.x);
@@ -81,7 +77,6 @@
                         });
 
                     markers[photo_info.photo_id] = marker;
-                    console.log("adding " + photo_info.photo_id);
                 }
             })
             

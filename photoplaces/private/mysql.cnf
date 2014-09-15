@@ -1,7 +1,0 @@
-[client]
-database = DATABASE_NAME
-user = USER_NAME
-password = WOW SUCH SECRET DON TELL ANY 1!
-default-character-set = utf8
-host = HOST
-port = 3306

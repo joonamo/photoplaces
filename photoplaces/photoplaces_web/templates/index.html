@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="/static/css/fauxfb.css" media="screen" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+
+    <!-- goooooooogle -->
+    <script type="text/javascript"
+          src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDbIFmONHHj77Q-1Gtx3rMdJF_1A8W0yiQ&sensor=true">
+    </script>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+
+    <script type="text/javascript">
+    var map;
+    var bounds = new google.maps.LatLngBounds ();
+    var markers = {};
+    var zoomTimeout;
+
+    function createMap() {
+        var mapOptions = {
+          center: new google.maps.LatLng(0, 0),
+          zoom: 1,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        map = new google.maps.Map(document.getElementById("canvas"),
+            mapOptions); 
+
+        google.maps.event.addListener(map, 'bounds_changed', function(e) {
+            if (zoomTimeout) {
+                window.clearTimeout(zoomTimeout);
+            }
+            zoomTimeout = window.setTimeout(query_points_for_view, 2000);
+        })
+
+    }
+
+    function query_points_for_view() {
+        var bounds = map.getBounds();
+        var x0 = bounds.getNorthEast().lng();
+        var y0 = bounds.getNorthEast().lat();
+        var x1 = bounds.getSouthWest().lng();
+        var y1 = bounds.getSouthWest().lat();
+
+        // Remove stuff off screen
+        var to_remove = [];
+
+        // What to remove
+        console.log("trying to remove");
+        $.each(markers, function(idx, marker){
+            console.log("testing " + idx); 
+            if (!bounds.contains(marker.getPosition()))
+            {
+                console.log("i'd like to delete " + idx);
+                marker.setMap(null);
+                to_remove.push(idx);
+            }
+        });
+        $.each(to_remove, function(i, idx){
+            delete markers[idx];
+            console.log("removing " + idx);
+        })
+
+        $.getJSON("/rest/photos_box_contains?x0=" + x0 + "&y0=" + y0 + "&x1=" + x1 + "&y1=" + y1, function(data){
+            console.log(data.length);
+            $.each(data, function(idx, photo_info){
+                if (!markers[photo_info.photo_id]) {
+                    var loc = new google.maps.LatLng(photo_info.y, photo_info.x);
+                    var marker = new google.maps.Marker({
+                        map: map,
+                        position: loc
+                    });
+
+                    var infowindow = new google.maps.InfoWindow({
+                        content: "<div style='width:200px;height:200px'><img src='" + photo_info.url + "' style='max-width:100%;max-height:100%;'/></div>"
+                        }); 
+                    google.maps.event.addListener(marker, 'click', function() {
+                        infowindow.open(map,marker);
+                        });
+
+                    markers[photo_info.photo_id] = marker;
+                    console.log("adding " + photo_info.photo_id);
+                }
+            })
+            
+        })
+
+    }
+
+    </script>
+</head>
+
+<body onload="createMap();">
+
+<div id="container">
+    <div id="header">
+        <div id="picture">
+        </div>
+        <div class="header_row">
+            <div id="username">
+            </div>
+        </div>
+        <div class="header_row">
+            <div id="status_text"></div>
+        </div>
+        </div>
+    <div id="canvas">
+    </div>
+
+</div>
+
+</body>
+
+</html>

@@ -8,5 +8,7 @@ urlpatterns = patterns('',
     # url(r'^$', 'photoplaces.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
 
+    url(r'^$', 'photoplaces_web.views.index'),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^rest/photos_box_contains', 'photoplaces_web.views.photos_box_contains'),
 )

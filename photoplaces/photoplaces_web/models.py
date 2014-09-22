@@ -2,16 +2,18 @@ from django.db import models
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 import hashlib
+from django.db import IntegrityError
 
 # Create your models here.
 class PhotoLocationEntry(models.Model):
     # Geometry
-    location = models.PointField()
+    location = models.PointField(spatial_index = True)
     objects = models.GeoManager()
 
     # Metadata
     username_md5 = models.CharField(
-        max_length = 32)
+        max_length = 32,
+        db_index = True)
     photo_service = models.CharField(
         max_length = 1,
         choices = (('F', 'flickr'),))
@@ -29,7 +31,12 @@ class PhotoLocationEntry(models.Model):
     time = models.DateTimeField(
         blank = True,
         null = True)
-
+    photo_title = models.CharField(
+        default = "",
+        max_length = 100)
+    tags = models.ManyToManyField(
+        "PhotoTag",
+        related_name = "photos")
     # Helper for creating a flickr entry. Remeber to save!
     # Args: 
     #   location, WKT: 'POINT(60.186161 24.8318864)'
@@ -41,10 +48,10 @@ class PhotoLocationEntry(models.Model):
     #
     # Returns: PhotoLocationEntry
     @staticmethod
-    def create_flickr_entry(location, user, id, secret, farm, server):
+    def create_flickr_entry(location, user, id, secret, farm, server, time, title, tags):
         photo_id = str(id) + "_" + str(secret)
         url_body = "https://farm" + str(farm) + ".staticflickr.com/" + str(server) + "/" + photo_id
-        return PhotoLocationEntry(
+        entry = PhotoLocationEntry(
             location = GEOSGeometry(location),
             username_md5 = hashlib.md5(user).hexdigest(),
             photo_service = "F",
@@ -52,7 +59,14 @@ class PhotoLocationEntry(models.Model):
             flickr_farm_id = farm,
             flickr_server_id = server,
             photo_url = url_body + ".jpg",
-            photo_thumb_url = url_body + "_t.jpg")
+            photo_thumb_url = url_body + "_t.jpg",
+            time = time,
+            photo_title = title)
+        entry.save()
+        for tag in tags:
+            t = PhotoTag.get(tag)
+            entry.tags.add(t)
+        return entry
 
     @staticmethod
     def box_contains(x0, y0, x1, y1, srid = None):
@@ -67,3 +81,21 @@ class PhotoLocationEntry(models.Model):
             str(x0) + " " + str(y0) + "))"
         box = GEOSGeometry(wkt, srid)
         return PhotoLocationEntry.objects.filter(location__contained = box)
+
+class PhotoTag(models.Model):
+    name = models.CharField(
+        max_length = 255,
+        unique = True)
+
+    @staticmethod
+    def get(name):
+        name = name.lower()
+        try:
+            return PhotoTag.objects.get(name=name)
+        except models.ObjectDoesNotExist:
+            try:
+                tag = PhotoTag(name = name)
+                tag.save()
+                return tag
+            except IntegrityError:
+                return PhotoTag.objects.get(name=name)

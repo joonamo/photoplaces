@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, MultiPoint
 import hashlib
 from django.db import IntegrityError
 
@@ -137,5 +137,32 @@ class PhotoCluster(models.Model):
 
     # Geometry
     center = models.PointField()
+    center_dirty = models.BooleanField(
+        default = True,
+        db_index = True)
     bounding_shape = models.PolygonField()
+    bounding_shape_dirty = models.BooleanField(
+        default = True,
+        db_index = True)
     objects = models.GeoManager()
+
+    @staticmethod
+    def create_cluster(run, first_photo):
+        c = PhotoCluster(
+            run = run,
+            center = first_photo.location,
+            bounding_shape = GEOSGeometry("POLYGON(EMPTY)"))
+        c.save()
+        c.photos.add(first_photo)
+
+    def update_center(self):
+        self.center = MultiPoint([e.location for e in self.objects]).centroid
+        self.center_dirty = False
+        self.save()
+        return self.center
+
+    def update_bounding_shape(self):
+        self.bounding_shape = MultiPoint([e.location for e in self.objects]).convex_hull
+        self.bounding_shape_dirty = False
+        self.save()
+        return self.bounding_shape

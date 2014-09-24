@@ -99,3 +99,43 @@ class PhotoTag(models.Model):
                 return tag
             except IntegrityError:
                 return PhotoTag.objects.get(name=name)
+
+class PhotoClusterRun(models.Model):
+    algorithm = models.CharField(
+        max_length = 2,
+        choices = (('DJ', 'DJ-Cluster'),))
+    start_time = models.DateTimeField(
+        auto_now_add = True,
+        db_index = True)
+    end_time = models.DateTimeField(
+        blank = True)
+    status = models.CharField(
+        max_length = 1,
+        choices = (('R', 'Running'), ('D', 'Done'), ('F', 'Failed')),
+        db_index = True)
+    messages = models.TextField()
+    density_eps = models.FloatField(
+        "Eps value for density based clustering",
+        blank = True,
+        null = True)
+    density_min_pts = models.IntegerField(
+        "MinPts value for density based clustering",
+        blank = True,
+        null = True)
+
+    def write_message(self, m):
+        self.messages += datetime.now().strftime("[%Y-%m-%d %H:%M:%S] ") + str(m) + "\n"
+        self.save()
+
+class PhotoCluster(models.Model):
+    run = models.ForeignKey(
+        PhotoClusterRun,
+        related_name = "clusters")
+    photos = models.ManyToManyField(
+        PhotoLocationEntry,
+        related_name = "clusters")
+
+    # Geometry
+    center = models.PointField()
+    bounding_shape = models.PolygonField()
+    objects = models.GeoManager()

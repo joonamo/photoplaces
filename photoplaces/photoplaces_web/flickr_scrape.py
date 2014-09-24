@@ -51,7 +51,7 @@ def process_photo(photo):
 
 
 def scarape_bbox(x0, y0, x1, y1, min_year):
-    url = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=" + settings.FLICKR_API_KEY + "&sort=relevance&media=photos&format=json&nojsoncallback=1&per_page=500&bbox=" + str(min(x0, x1)) + "," + str(min(y0, y1)) + "," + str(max(x0, x1)) + "," + str(max(y0, y1)) + "&min_upload_date=" + str(min_year)
+    url = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=" + settings.FLICKR_API_KEY + "&sort=relevance&media=photos&format=json&nojsoncallback=1&per_page=250&bbox=" + str(min(x0, x1)) + "," + str(min(y0, y1)) + "," + str(max(x0, x1)) + "," + str(max(y0, y1)) + "&min_upload_date=" + str(min_year)
     result = json.load(urllib2.urlopen(url))
 
     def worker():

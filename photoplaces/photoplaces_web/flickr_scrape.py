@@ -6,8 +6,9 @@ import urllib2
 import sys
 import re
 import traceback
+import time
 from Queue import Queue
-from threading import Thread
+from threading import Thread, Event
 from django.conf import settings
 from datetime import datetime
 from pprint import pprint
@@ -20,8 +21,9 @@ def flickr_to_deg(dms):
 def flickr_date_to_datetime(t):
     return datetime.strptime(t, "%Y-%m-%d %H:%M:%S")
 
-def process_photo(photo):
+def process_photo(photo, e):
     try:
+        start_time = time.clock()
         info_url = "https://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=" + settings.FLICKR_API_KEY + "&format=json&nojsoncallback=1&photo_id=" + photo["id"]
         info = json.load(urllib2.urlopen(info_url))
         lat = info["photo"]["location"]["latitude"]
@@ -38,38 +40,47 @@ def process_photo(photo):
                 flickr_date_to_datetime(info["photo"]["dates"]["taken"]), 
                 photo["title"],
                 [tag["_content"] for tag in info["photo"]["tags"]["tag"]])
-            print("saving " + photo["title"])
+            print("[%2.4f] saving %s" % ((time.clock() - start_time), photo["title"]))
         else:
-            print(photo["title"] + " aleready in db")
+            print("[%2.4f] aleready in db %s" % ((time.clock() - start_time), photo["title"]))
 
     except urllib2.HTTPError as e:
         if e.code != 2:
             print("HTTPError: error code " + e.code + "\n" + e.reason)
     except:
+        e.clear()
         print("Exception: " + str(sys.exc_info()[0]))
         traceback.print_exc()
+        raw_input("now what?")
+        e.set()
 
-
-def scarape_bbox(x0, y0, x1, y1, min_year):
-    url = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=" + settings.FLICKR_API_KEY + "&sort=relevance&media=photos&format=json&nojsoncallback=1&per_page=250&bbox=" + str(min(x0, x1)) + "," + str(min(y0, y1)) + "," + str(max(x0, x1)) + "," + str(max(y0, y1)) + "&min_upload_date=" + str(min_year)
-    result = json.load(urllib2.urlopen(url))
-
-    def worker():
+def scarape_bbox(x0, y0, x1, y1, min_year, start_page, pages):
+    def worker(e):
         while True:
+            if not e.isSet():
+                print("waiting event")
+                e.wait()
             photo = q.get()
-            process_photo(photo)
+            process_photo(photo, e)
             q.task_done()
 
     q = Queue()
+    e = Event()
+    e.set()
     for i in range(8):
-         t = Thread(target=worker)
-         t.daemon = True
-         t.start()
+        t = Thread(target=worker, args=(e,))
+        t.daemon = True
+        t.start()
 
-    for photo in result["photos"]["photo"]:
-        q.put(photo)
+    for page in xrange(start_page, pages):
+        url = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=" + settings.FLICKR_API_KEY + "&sort=interestingness-desc&media=photos&format=json&nojsoncallback=1&per_page=250&bbox=" + str(min(x0, x1)) + "," + str(min(y0, y1)) + "," + str(max(x0, x1)) + "," + str(max(y0, y1)) + "&min_upload_date=" + str(min_year) + "&page=" + str(page)
+        print("url: %s" % url)
+        result = json.load(urllib2.urlopen(url))
+        for photo in result["photos"]["photo"]:
+            q.put(photo)
 
-    q.join()
+        q.join()
+        print("******************\npage %i done\n******************" % page)
 
 def scrape_test(tags):
     url = "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=" + settings.FLICKR_API_KEY + "&tags=" + tags + "&sort=relevance&media=photos&format=json&nojsoncallback=1"

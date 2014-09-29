@@ -166,3 +166,5 @@ class PhotoCluster(models.Model):
         self.bounding_shape_dirty = False
         self.save()
         return self.bounding_shape
+
+    

@@ -111,8 +111,9 @@ class PhotoClusterRun(models.Model):
         blank = True)
     status = models.CharField(
         max_length = 1,
-        choices = (('R', 'Running'), ('D', 'Done'), ('F', 'Failed')),
-        db_index = True)
+        choices = (("W", "Waiting"), ('R', 'Running'), ('D', 'Done'), ('F', 'Failed')),
+        db_index = True,
+        default = "W")
     messages = models.TextField()
     density_eps = models.FloatField(
         "Eps value for density based clustering",
@@ -154,6 +155,23 @@ class PhotoCluster(models.Model):
             bounding_shape = GEOSGeometry("POLYGON(EMPTY)"))
         c.save()
         c.photos.add(first_photo)
+
+        return c
+
+    def add_photo(self, photo):
+        try:
+            self.photos.get(pk=photo.pk)
+            return True
+        except models.ObjectDoesNotExist:
+            self.photos.add(photo)
+            self.center_dirty = True
+            self.bounding_shape_dirty = True
+            self.save()
+            return False
+
+    def update_geometry(self):
+        self.update_center()
+        self.update_bounding_shape()
 
     def update_center(self):
         self.center = MultiPoint([e.location for e in self.objects]).centroid

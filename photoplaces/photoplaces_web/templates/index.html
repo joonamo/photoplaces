@@ -66,7 +66,8 @@
                     var loc = new google.maps.LatLng(photo_info.y, photo_info.x);
                     var marker = new google.maps.Marker({
                         map: map,
-                        position: loc
+                        position: loc,
+                        icon: "/static/images/red_marker.png"
                     });
 
                     var infowindow = new google.maps.InfoWindow({

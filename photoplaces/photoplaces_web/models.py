@@ -3,6 +3,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry, MultiPoint
 import hashlib
 from django.db import IntegrityError
+from datetime import datetime
 
 # Create your models here.
 class PhotoLocationEntry(models.Model):
@@ -108,7 +109,7 @@ class PhotoClusterRun(models.Model):
         auto_now_add = True,
         db_index = True)
     end_time = models.DateTimeField(
-        blank = True)
+        auto_now_add = True)
     status = models.CharField(
         max_length = 1,
         choices = (("W", "Waiting"), ('R', 'Running'), ('D', 'Done'), ('F', 'Failed')),
@@ -123,10 +124,20 @@ class PhotoClusterRun(models.Model):
         "MinPts value for density based clustering",
         blank = True,
         null = True)
+    unprocessed = models.ManyToManyField(
+        PhotoLocationEntry,
+        related_name = "+")
 
     def write_message(self, m):
         self.messages += datetime.now().strftime("[%Y-%m-%d %H:%M:%S] ") + str(m) + "\n"
         self.save()
+
+    def mark_processed(self, v):
+        try:
+            self.unprocessed.remove(v)
+            return True
+        except models.ObjectDoesNotExist:
+            return False
 
 class PhotoCluster(models.Model):
     run = models.ForeignKey(
@@ -152,7 +163,7 @@ class PhotoCluster(models.Model):
         c = PhotoCluster(
             run = run,
             center = first_photo.location,
-            bounding_shape = GEOSGeometry("POLYGON(EMPTY)"))
+            bounding_shape = GEOSGeometry("POLYGON((0 0, 0 0, 0 0, 0 0))"))
         c.save()
         c.photos.add(first_photo)
 
@@ -174,13 +185,13 @@ class PhotoCluster(models.Model):
         self.update_bounding_shape()
 
     def update_center(self):
-        self.center = MultiPoint([e.location for e in self.objects]).centroid
+        self.center = MultiPoint([e.location for e in self.photos.all()]).centroid
         self.center_dirty = False
         self.save()
         return self.center
 
     def update_bounding_shape(self):
-        self.bounding_shape = MultiPoint([e.location for e in self.objects]).convex_hull
+        self.bounding_shape = MultiPoint([e.location for e in self.photos.all()]).convex_hull
         self.bounding_shape_dirty = False
         self.save()
         return self.bounding_shape

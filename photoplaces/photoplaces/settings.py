@@ -20,6 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '7fo6g-f@2n15-zpw^$vpso7nr+00w6pgxd8cm!cdpdo^$48+!-'
 FLICKR_API_KEY = private.passwords.flickr_api_key
+GOOGLE_API_KEY = private.passwords.google_api_key
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

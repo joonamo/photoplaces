@@ -196,4 +196,23 @@ class PhotoCluster(models.Model):
         self.save()
         return self.bounding_shape
 
-    
+    @staticmethod
+    def box_contains(x0, y0, x1, y1, **kwargs):
+        srid = kwargs.get("srid")
+        if srid == None:
+            srid = 4326 # WGS84!
+
+        run_id = kwargs.get("run_id")
+        if run_id != None:
+            qs = PhotoCluster.objects.filter(run = kwargs["run_id"])
+        else:
+            qs = PhotoCluster.objects.all()
+
+        wkt = "POLYGON((" + \
+            str(x0) + " " + str(y0) + ", "+\
+            str(x0) + " " + str(y1) + ", "+\
+            str(x1) + " " + str(y1) + ", "+\
+            str(x1) + " " + str(y0) + ", "+\
+            str(x0) + " " + str(y0) + "))"
+        box = GEOSGeometry(wkt, srid)
+        return qs.filter(center__contained = box)

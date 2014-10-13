@@ -4,6 +4,7 @@ from django.contrib.gis.geos import GEOSGeometry, MultiPoint
 import hashlib
 from django.db import IntegrityError
 from datetime import datetime
+import _mysql_exceptions
 
 # Create your models here.
 class PhotoLocationEntry(models.Model):
@@ -62,7 +63,7 @@ class PhotoLocationEntry(models.Model):
             photo_url = url_body + ".jpg",
             photo_thumb_url = url_body + "_t.jpg",
             time = time,
-            photo_title = title)
+            photo_title = title[:100])
         entry.save()
         for tag in tags:
             t = PhotoTag.get(tag)
@@ -96,7 +97,10 @@ class PhotoTag(models.Model):
         except models.ObjectDoesNotExist:
             try:
                 tag = PhotoTag(name = name)
-                tag.save()
+                try:
+                    tag.save()
+                except _mysql_exceptions.Warning:
+                    pass
                 return tag
             except IntegrityError:
                 return PhotoTag.objects.get(name=name)

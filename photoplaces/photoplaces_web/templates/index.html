@@ -19,6 +19,9 @@
     var markers = {};
     var cluster_polygons = {};
     var zoomTimeout;
+    var marker_image = {
+        url: "/static/images/red_marker.png",
+        anchor: new google.maps.Point(4,4)}
 
     function createMap() {
         var mapOptions = {
@@ -61,7 +64,7 @@
         })
 
         $.getJSON("/rest/photos_box_contains?x0=" + x0 + "&y0=" + y0 + "&x1=" + x1 + "&y1=" + y1, function(data){
-            console.log("got " +data.features.length);
+            console.log("got " + data.features.length);
             add_photo_to_map(data.features, 0, 128);
         })
 
@@ -72,6 +75,23 @@
 
     }
 
+    function create_photo_marker(photo_info) {
+        var loc = new google.maps.LatLng(photo_info.geometry.coordinates[1], photo_info.geometry.coordinates[0]);
+        var marker = new google.maps.Marker({
+            map: map,
+            position: loc,
+            icon: marker_image
+        });
+
+        var infowindow = new google.maps.InfoWindow({
+            content: "<div style='width:200px;height:200px'><a href='" + photo_info.properties.photo_url + "'><img src='" + photo_info.properties.photo_thumb_url + "' style='max-width:100%;max-height:100%;'/></div>"
+            }); 
+        google.maps.event.addListener(marker, 'click', function() {
+            infowindow.open(map,marker);
+            });
+        markers[photo_info.id] = marker;
+    }
+
     function add_photo_to_map(photos, i, step) {
         for (var j = 0; j < step; j++) {
             if (i + j >= photos.length)
@@ -80,21 +100,7 @@
             }
             var photo_info = photos[i + j];
             if (!markers[photo_info.id]) {
-                var loc = new google.maps.LatLng(photo_info.geometry.coordinates[1], photo_info.geometry.coordinates[0]);
-                var marker = new google.maps.Marker({
-                    map: map,
-                    position: loc,
-                    icon: "/static/images/red_marker.png"
-                });
-
-                var infowindow = new google.maps.InfoWindow({
-                    content: "<div style='width:200px;height:200px'><a href='" + photo_info.properties.photo_url + "'><img src='" + photo_info.properties.photo_thumb_url + "' style='max-width:100%;max-height:100%;'/></div>"
-                    }); 
-                google.maps.event.addListener(marker, 'click', function() {
-                    infowindow.open(map,marker);
-                    });
-
-                markers[photo_info.id] = marker;
+                create_photo_marker(photo_info);
             }
         }
         i += step;

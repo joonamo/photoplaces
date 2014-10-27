@@ -98,7 +98,7 @@ class PhotoLocationEntry(models.Model):
         box = GEOSGeometry(wkt, srid)
         return PhotoLocationEntry.objects.filter(location__disjoint = box)
 
-class NormalizedPhotoSet(models.model):
+class NormalizedPhotoSet(models.Model):
     location_x_mean = models.FloatField(
         blank = True, 
         null = True)

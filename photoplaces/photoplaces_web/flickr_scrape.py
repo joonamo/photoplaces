@@ -70,7 +70,7 @@ def scarape_bbox(x0, y0, x1, y1, start_page, max_pages, **kwargs):
     q = Queue()
     e = Event()
     e.set()
-    for i in range(8):
+    for i in range(4):
         t = Thread(target=worker, args=(e,))
         t.daemon = True
         t.start()
@@ -144,7 +144,7 @@ def scrape_test(tags):
             else:
                 continue
 
-def reasearch_area_scrape(month, year):
+def research_area_scrape(month, year):
     min_taken_date = "%d-%d" % (year, month)
     if month == 12:
         month = 1

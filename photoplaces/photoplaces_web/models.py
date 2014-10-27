@@ -84,6 +84,64 @@ class PhotoLocationEntry(models.Model):
         box = GEOSGeometry(wkt, srid)
         return PhotoLocationEntry.objects.filter(location__contained = box)
 
+    @staticmethod
+    def box_disjoint(x0, y0, x1, y1, srid = None):
+        if srid == None:
+            srid = 4326 # WGS84!
+
+        wkt = "POLYGON((" + \
+            str(x0) + " " + str(y0) + ", "+\
+            str(x0) + " " + str(y1) + ", "+\
+            str(x1) + " " + str(y1) + ", "+\
+            str(x1) + " " + str(y0) + ", "+\
+            str(x0) + " " + str(y0) + "))"
+        box = GEOSGeometry(wkt, srid)
+        return PhotoLocationEntry.objects.filter(location__disjoint = box)
+
+class NormalizedPhotoSet(models.model):
+    location_x_mean = models.FloatField(
+        blank = True, 
+        null = True)
+    location_x_std = models.FloatField(
+        blank = True, 
+        null = True)
+    location_y_mean = models.FloatField(
+        blank = True, 
+        null = True)
+    location_y_std = models.FloatField(
+        blank = True, 
+        null = True)
+
+    month_mean = models.FloatField(
+        blank = True, 
+        null = True)
+    month_std = models.FloatField(
+        blank = True, 
+        null = True)
+    hour_mean = models.FloatField(
+        blank = True, 
+        null = True)
+    hour_std = models.FloatField(
+        blank = True, 
+        null = True)
+
+class NormalizedPhotoEntry(models.Model):
+    actual_photo = models.ForeignKey(
+        NormalizedPhotoSet,
+        related_name = "entries")
+    location_x = models.FloatField(
+        blank = True, 
+        null = True)
+    location_y = models.FloatField(
+        blank = True, 
+        null = True)
+    month = models.FloatField(
+        blank = True, 
+        null = True)
+    hour = models.FloatField(
+        blank = True, 
+        null = True)
+
 class PhotoTag(models.Model):
     name = models.CharField(
         max_length = 255,

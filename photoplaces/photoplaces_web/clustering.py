@@ -25,7 +25,7 @@ class DjCluster:
             self.run.density_eps = eps
             self.run.save()
             self.run.unprocessed.add(*[photo.pk for photo in qs])
-            self.write_message("Set up Clustering for %d photos..." % (len(qs),))
+            self.write_message("Set up Clustering for %d photos..." % (qs.count(),))
 
     def go(self, bbox_func, debug = False):
         try:
@@ -34,12 +34,12 @@ class DjCluster:
 
             # Let's cluster!
             count = 0
-            qs_length = len(self.run.unprocessed.all())
+            qs_length = self.run.unprocessed.all().count()
             self.write_message("Starting Clustering %d photos..." % (qs_length,))
-            while len(self.run.unprocessed.all()) > 0:
+            while self.run.unprocessed.all().count() > 0:
                 photo = self.run.unprocessed.all()[0]
                 if count % 1 == 0:
-                    self.write_message("%d/%d photos done, %d left, I have %d clusters" % (count, qs_length, len(self.run.unprocessed.all()), len(self.run.clusters.all())))
+                    self.write_message("%d/%d photos done, %d left, I have %d clusters" % (count, qs_length, self.run.unprocessed.all().count(), self.run.clusters.all().count()))
                 nbh_count, nbh, clusters = self.dj_neighborhood(photo, bbox_func, debug)
                 if nbh_count == 0:
                     pass # is noise
@@ -51,7 +51,7 @@ class DjCluster:
                 self.run.mark_processed(photo) # Just to make sure...
                 count += 1
 
-            self.write_message("Clustering done, found %d clusters. Starting clean up..." % (len(self.run.clusters.all()),) )
+            self.write_message("Clustering done, found %d clusters. Starting clean up..." % (self.run.clusters.all().count(),) )
 
             # cleanup clusters
             for cluster in self.run.clusters.all():
@@ -86,11 +86,13 @@ class DjCluster:
             nbh = []
             seen_users = []
             clusters = []
-            count = 0
+            count = candidates.order_by('username_md5').values('username_md5').distinct().count()
+            print("candidates: %d, seen users: %d" % (candidates.count(), count))
+            if count < self.min_pts:
+                return 0, [], []
             for candidate in candidates:
                 if not(candidate.username_md5 in seen_users):
                     seen_users.append(candidate.username_md5)
-                    count += 1
                 try:
                     candidate_cluster = candidate.clusters.get(run = self.run)
                     if not(candidate_cluster in clusters): 
@@ -98,11 +100,8 @@ class DjCluster:
                 except models.ObjectDoesNotExist:
                     nbh.append(candidate)
 
-            print("candidates: %d, seen users: %d" % (len(candidates), len(seen_users)))
-            if count >= self.min_pts:
-                return count, nbh, clusters
-            else:
-                return 0, [], []
+            return count, nbh, clusters
+
         except:
             self.run.status = "F"
             self.run.save()
@@ -118,12 +117,10 @@ class DjCluster:
         try:
             target_cluster = clusters[0]
             for cluster in clusters[1:]:
-                for photo in cluster.photos.all():
-                    target_cluster.add_photo(photo)
+                target_cluster.photos.add(*[photo.pk for photo in cluster.photos.all()])
                 cluster.delete()
-            for photo in nbh:
-                self.run.mark_processed(photo)
-                target_cluster.add_photo(photo)
+            self.run.unprocessed.remove(*[photo.pk for photo in nbh])
+            target_cluster.photos.add(*[photo.pk for photo in nbh])
 
             return target_cluster
 
@@ -141,9 +138,8 @@ class DjCluster:
     def dj_cluster_new(self, nbh, debug = False):
         try:
             target_cluster = PhotoCluster.create_cluster(self.run, nbh[0])
-            for photo in nbh[1:]:
-                self.run.mark_processed(photo)
-                target_cluster.add_photo(photo)
+            self.run.unprocessed.remove(*[photo.pk for photo in nbh[1:]])
+            target_cluster.photos.add(*[photo.pk for photo in nbh[1:]])
 
             return target_cluster
 
@@ -161,9 +157,9 @@ class DjCluster:
 def dj_test():
     dj = DjCluster()
     from models import PhotoLocationEntry
-    qs = PhotoLocationEntry.box_contains(135.55515242401123,34.686962336951424,135.43945265594482,34.62299551708821)
+    qs = PhotoLocationEntry.objects.all()#box_contains(135.55515242401123,34.686962336951424,135.5,34.62299551708821)
 
-    dj.set_up(qs, 3, 0.001)
+    dj.set_up(qs, 20, 0.001)
     dj.go(PhotoLocationEntry.box_contains, True)
 
 def cleanup_test():

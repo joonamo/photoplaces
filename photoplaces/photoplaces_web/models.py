@@ -102,31 +102,34 @@ class NormalizedPhotoSet(models.Model):
     location_x_mean = models.FloatField(
         blank = True, 
         null = True)
-    location_x_std = models.FloatField(
+    location_x_deviation = models.FloatField(
         blank = True, 
         null = True)
     location_y_mean = models.FloatField(
         blank = True, 
         null = True)
-    location_y_std = models.FloatField(
+    location_y_deviation = models.FloatField(
         blank = True, 
         null = True)
 
     month_mean = models.FloatField(
         blank = True, 
         null = True)
-    month_std = models.FloatField(
+    month_deviation = models.FloatField(
         blank = True, 
         null = True)
     hour_mean = models.FloatField(
         blank = True, 
         null = True)
-    hour_std = models.FloatField(
+    hour_deviation = models.FloatField(
         blank = True, 
         null = True)
 
 class NormalizedPhotoEntry(models.Model):
     actual_photo = models.ForeignKey(
+        PhotoLocationEntry,
+        related_name = "+")
+    normalized_set = models.ForeignKey(
         NormalizedPhotoSet,
         related_name = "entries")
     location_x = models.FloatField(

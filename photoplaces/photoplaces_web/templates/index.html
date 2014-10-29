@@ -63,10 +63,10 @@
             delete markers[idx];
         })
 
-        $.getJSON("/rest/photos_box_contains?x0=" + x0 + "&y0=" + y0 + "&x1=" + x1 + "&y1=" + y1, function(data){
-            console.log("got " + data.features.length);
-            add_photo_to_map(data.features, 0, 128);
-        })
+        // $.getJSON("/rest/photos_box_contains?x0=" + x0 + "&y0=" + y0 + "&x1=" + x1 + "&y1=" + y1, function(data){
+        //     console.log("got " + data.features.length);
+        //     add_photo_to_map(data.features, 0, 128);
+        // })
 
         $.getJSON("/rest/clusters_box_contains?x0=" + x0 + "&y0=" + y0 + "&x1=" + x1 + "&y1=" + y1, function(data){
             console.log("got " + data.features.length);

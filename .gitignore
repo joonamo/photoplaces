@@ -10,3 +10,4 @@ temp
 *.pyc
 photoplaces/private/mysql.cnf
 photoplaces/private/passwords.py
+man

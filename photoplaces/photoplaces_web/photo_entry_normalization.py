@@ -1,7 +1,7 @@
 from models import PhotoLocationEntry, NormalizedPhotoSet, NormalizedPhotoEntry
 import numpy as np
-from math.cyclical_math import *
-from math.normalization import *
+from math_functions.cyclical_math import *
+from math_functions.normalization import *
 from Queue import Queue
 from threading import Thread, Event
 

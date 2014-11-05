@@ -5,6 +5,7 @@ import hashlib
 from django.db import IntegrityError
 from datetime import datetime
 import _mysql_exceptions
+import numpy as np
 
 # Create your models here.
 class PhotoLocationEntry(models.Model):
@@ -169,7 +170,7 @@ class PhotoTag(models.Model):
 class PhotoClusterRun(models.Model):
     algorithm = models.CharField(
         max_length = 2,
-        choices = (('DJ', 'DJ-Cluster'),))
+        choices = (('DJ', 'DJ-Cluster'),('KM', 'K-Means'),))
     start_time = models.DateTimeField(
         auto_now_add = True,
         db_index = True)
@@ -211,6 +212,17 @@ class PhotoCluster(models.Model):
     photos = models.ManyToManyField(
         PhotoLocationEntry,
         related_name = "clusters")
+    normalized_entries = models.ManyToManyField(
+        NormalizedPhotoEntry,
+        related_name = "clusters")
+    normalized_centers = models.OneToOneField(
+        NormalizedPhotoSet,
+        related_name = "+",
+        blank = True,
+        null = True)
+    normalized_centers_dirty = models.BooleanField(
+        default = True,
+        db_index = True)
 
     # Geometry
     center = models.PointField()
@@ -224,15 +236,29 @@ class PhotoCluster(models.Model):
     objects = models.GeoManager()
 
     @staticmethod
-    def create_cluster(run, first_photo):
+    def create_cluster(run, first_photo, normalized_entry = None):
         c = PhotoCluster(
             run = run,
             center = first_photo.location,
             bounding_shape = GEOSGeometry("POLYGON((0 0, 0 0, 0 0, 0 0))"))
         c.save()
         c.photos.add(first_photo)
+        if normalized_entry:
+            c.normalized_entries.add(normalized_entry)
 
         return c
+
+    def clear_normalized_entries(self):
+        self.photos.clear()
+        self.normalized_entries.clear()
+
+    def add_normalized_entries(self, normalized_entries):
+        self.normalized_entries.add(*[e.pk for e in normalized_entries])
+        self.photos.add(*[e.actual_photo.pk for e in normalized_entries])
+        self.center_dirty = True
+        self.bounding_shape_dirty = True
+        self.save()
+        return False
 
     def add_photo(self, photo):
         try:

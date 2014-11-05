@@ -16,16 +16,16 @@ class DjCluster:
         #self.run.write_message(msg)
 
     def set_up(self, qs, min_pts, eps):
-            # Set up
-            self.write_message("Setting up...")
-            self.run.status = "W"
-            self.min_pts = min_pts
-            self.run.density_min_pts = min_pts
-            self.eps = eps
-            self.run.density_eps = eps
-            self.run.save()
-            self.run.unprocessed.add(*[photo.pk for photo in qs])
-            self.write_message("Set up Clustering for %d photos..." % (qs.count(),))
+        # Set up
+        self.write_message("Setting up...")
+        self.run.status = "W"
+        self.min_pts = min_pts
+        self.run.density_min_pts = min_pts
+        self.eps = eps
+        self.run.density_eps = eps
+        self.run.save()
+        self.run.unprocessed.add(*[photo.pk for photo in qs])
+        self.write_message("Set up Clustering for %d photos..." % (qs.count(),))
 
     def go(self, bbox_func, debug = False):
         try:

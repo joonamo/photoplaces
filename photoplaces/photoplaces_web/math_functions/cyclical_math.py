@@ -18,7 +18,12 @@ def quaternion_to_cycle_v(q, cycle_length):
     else:
         return v
 
-def cycle_avg(values, cycle_length):
-    quaternions = [cycle_v_to_quaternion(v, cycle_length) for v in values]
+def cycle_avg(values, cycle_length, **kwargs):
+    weights = kwargs.get("weights")
+    if weights is None:
+        weights = np.ones(len(values))
+    weights = np.array([weights, weights]).transpose()
+    quaternions = np.array([cycle_v_to_quaternion(v, cycle_length) for v in values])
+    quaternions = quaternions * weights
     s = np.sum(quaternions, axis=0)
     return quaternion_to_cycle_v(s / np.linalg.norm(s), cycle_length)

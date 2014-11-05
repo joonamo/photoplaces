@@ -119,11 +119,24 @@ class NormalizedPhotoSet(models.Model):
     month_deviation = models.FloatField(
         blank = True, 
         null = True)
+    month_z_cycle_length = models.FloatField(
+        blank = True,
+        null = True)
+
+    month_mean_natural = models.FloatField(
+        blank = True, 
+        null = True)
     hour_mean = models.FloatField(
         blank = True, 
         null = True)
     hour_deviation = models.FloatField(
         blank = True, 
+        null = True)
+    hour_mean_natural = models.FloatField(
+        blank = True, 
+        null = True)
+    hour_z_cycle_length = models.FloatField(
+        blank = True,
         null = True)
 
 class NormalizedPhotoEntry(models.Model):
@@ -135,16 +148,20 @@ class NormalizedPhotoEntry(models.Model):
         related_name = "entries")
     location_x = models.FloatField(
         blank = True, 
-        null = True)
+        null = True,
+        db_index = True)
     location_y = models.FloatField(
         blank = True, 
-        null = True)
+        null = True,
+        db_index = True)
     month = models.FloatField(
         blank = True, 
-        null = True)
+        null = True,
+        db_index = True)
     hour = models.FloatField(
         blank = True, 
-        null = True)
+        null = True,
+        db_index = True)
 
 class PhotoTag(models.Model):
     name = models.CharField(
@@ -194,6 +211,12 @@ class PhotoClusterRun(models.Model):
         PhotoLocationEntry,
         related_name = "+")
 
+    normalized_set = models.OneToOneField(
+        NormalizedPhotoSet,
+        related_name = "+",
+        blank = True,
+        null = True)
+
     def write_message(self, m):
         self.messages += datetime.now().strftime("[%Y-%m-%d %H:%M:%S] ") + str(m) + "\n"
         self.save()
@@ -215,6 +238,7 @@ class PhotoCluster(models.Model):
     normalized_entries = models.ManyToManyField(
         NormalizedPhotoEntry,
         related_name = "clusters")
+
     normalized_centers = models.OneToOneField(
         NormalizedPhotoSet,
         related_name = "+",
@@ -253,10 +277,16 @@ class PhotoCluster(models.Model):
         self.normalized_entries.clear()
 
     def add_normalized_entries(self, normalized_entries):
-        self.normalized_entries.add(*[e.pk for e in normalized_entries])
-        self.photos.add(*[e.actual_photo.pk for e in normalized_entries])
+        self.add_normalized_entries_from_keys(
+            [e.pk for e in normalized_entries],
+            [e.actual_photo.pk for e in normalized_entries])
+
+    def add_normalized_entries_from_keys(self, normalized_entries, actual_photos):
+        self.normalized_entries.add(*[e for e in normalized_entries])
+        self.photos.add(*[e for e in actual_photos])
         self.center_dirty = True
         self.bounding_shape_dirty = True
+        self.normalized_centers_dirty = True
         self.save()
         return False
 

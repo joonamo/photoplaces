@@ -46,6 +46,13 @@ def normalize_values(normalized_set):
 
     print("All in Queue, waiting...")
     q.join()
+
+    # Untested, only done in interactive console...
+    hours = ns.entries.order_by("hour").values("hour").distinct()
+    normalized_set.hour_z_cycle_length = abs(hours[0]["hour"] - hours[1]["hour"]) * 24
+    months = ns.entries.order_by("month").values("month").distinct()
+    normalized_set.month_z_cycle_length = abs(months[0]["month"] - months[1]["month"]) * 12
+
     print("All done")
 
 

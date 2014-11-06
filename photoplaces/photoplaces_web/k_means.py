@@ -133,6 +133,8 @@ class KMeans:
             self.run.normalized_set.month_deviation,
             12)
 
+        cluster.normalized_centers_dirty = False
+
         normalized_set.save()
 
     def process_iteration(self):

@@ -52,16 +52,22 @@ class KMeans:
         center_x = np.array([])
         center_y = np.array([])
         center_c = np.array([])
+        center_month = np.array([])
         for cluster in self.run.clusters.all():
-            x = np.concatenate((x, [e.location_x for e in cluster.normalized_entries.all()]))
-            y = np.concatenate((y, [e.location_y for e in cluster.normalized_entries.all()]))
-            c = np.concatenate((c, np.ones(cluster.normalized_entries.all().count()) * cluster.pk))
+            normalized_entries = cluster.normalized_entries.all().values()
+            x = np.concatenate((x, [e["location_x"] for e in normalized_entries]))
+            y = np.concatenate((y, [e["location_y"] for e in normalized_entries]))
+            c = np.concatenate((c, np.ones(len(normalized_entries)) * cluster.pk))
             center_x = np.concatenate((center_x, [cluster.normalized_centers.location_x_mean]))
             center_y = np.concatenate((center_y, [cluster.normalized_centers.location_y_mean]))
             center_c = np.concatenate((center_c, [cluster.pk]))
+            center_month = np.concatenate((center_month, [cluster.normalized_centers.month_mean_natural]))
+
 
         plt.scatter(x, y, c = c, hold = True, marker = ".", linewidths = 0)
         plt.scatter(center_x, center_y, c = center_c, hold = True, marker = "s")
+        # for i in xrange(len(center_x)):
+        #     plt.text(center_x[i], center_y[i], np.floor(center_month[i]))
 
         print("showing plot...")
         plt.show()
@@ -76,7 +82,7 @@ class KMeans:
                 q.task_done()
 
         q = Queue()
-        for i in xrange(2):
+        for i in xrange(3):
             t = Thread(target = worker)
             t.daemon = True
             t.start()
@@ -172,19 +178,34 @@ class KMeans:
             cluster_map[closest][1].append(entry["actual_photo_id"])
 
             done += 1
-            if done % 100 == 0:
+            if done % 5000 == 0:
                 print("%6d/%6d (%3.1f%%) processed" % (done, count_all, 100.0 * done / count_all))
 
         # Threads here!
         print("All processed... pushing to db...")
-        done = 0
         count_all = self.run.clusters.count()
-        for cluster in self.run.clusters.all():
-            cluster.clear_normalized_entries()
-            cluster.add_normalized_entries_from_keys(*cluster_map[cluster.pk])
+        
+        q = Queue()
+        def worker():
+            while True:
+                cluster = q.get()
+                cluster_pk = cluster.pk
+                cluster.clear_normalized_entries()
+                cluster.add_normalized_entries_from_keys(*cluster_map[cluster_pk])
 
-            done += 1
-            print("Added %d entries to cluster %d/%d" % (cluster.normalized_entries.count(), done, count_all))
+                print("Added %d entries to cluster. %3d left." % (len(cluster_map[cluster.pk][0]), q.qsize()))
+
+                q.task_done()
+
+        for i in xrange(3):
+            t = Thread(target = worker)
+            t.daemon = True
+            t.start()
+
+
+        for cluster in self.run.clusters.all():
+            q.put(cluster)
+        q.join()
 
         print("Entries added, updating cluster centers...")
         self.update_all_cluster_centers()

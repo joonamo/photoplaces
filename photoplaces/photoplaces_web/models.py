@@ -211,7 +211,7 @@ class PhotoClusterRun(models.Model):
         PhotoLocationEntry,
         related_name = "+")
 
-    normalized_set = models.OneToOneField(
+    normalized_set = models.ForeignKey(
         NormalizedPhotoSet,
         related_name = "+",
         blank = True,

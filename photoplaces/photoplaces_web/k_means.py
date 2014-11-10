@@ -6,7 +6,6 @@ import sys
 from django.db import models
 import numpy as np
 import math_functions.cyclical_math as cm
-import matplotlib.pyplot as plt
 from Queue import Queue
 from threading import Thread
 import math_functions.normalization as norm
@@ -28,6 +27,7 @@ class KMeans:
         # Set up
         self.write_message("Setting up...")
         self.run.status = "W"
+        self.run.normalized_set = qs[0].normalized_set
         self.run.save()
 
         cluster_size = qs.count() / k
@@ -46,6 +46,7 @@ class KMeans:
         print("Set up done")
 
     def simple_visualization(self):
+        import matplotlib.pyplot as plt
         x = np.array([])
         y = np.array([])
         c = np.array([])
@@ -90,10 +91,13 @@ class KMeans:
         force = kwargs.get("force")
         all_clusters = kwargs.get("all_clusters")
         if all_clusters is None:
-            all_clusters = self.run.clusters.all().prefetch_related("photos", "normalized_entries", "normalized_centers")
+            if not force:
+                all_clusters = self.run.clusters.filter(normalized_centers_dirty = True).prefetch_related("photos", "normalized_entries", "normalized_centers")
+            else:
+                all_clusters = self.run.clusters.all().prefetch_related("photos", "normalized_entries", "normalized_centers")
+
         for cluster in all_clusters:
-            if cluster.normalized_centers_dirty or force:
-                q.put(cluster)
+            q.put(cluster)
 
         print("Everything in queue, processing...")
         q.join()
@@ -137,7 +141,7 @@ class KMeans:
         
         normalized_set.month_mean_natural = cm.cycle_avg(months, 12, weights = weights)
         normalized_set.month_mean = norm.cyclical_z_score(
-            normalized_set.month_mean,
+            normalized_set.month_mean_natural,
             self.run.normalized_set.month_mean,
             self.run.normalized_set.month_deviation,
             12)
@@ -194,17 +198,27 @@ class KMeans:
             if done % 5000 == 0:
                 print("%6d/%6d (%3.1f%%) processed" % (done, count_all, 100.0 * done / count_all))
 
-        # Threads here!
         print("All processed... pushing to db...")
-        count_all = self.run.clusters.count()
         
         q = Queue()
         def worker():
             while True:
                 cluster = q.get()
-                cluster_pk = cluster.pk
-                cluster.clear_normalized_entries()
-                cluster.add_normalized_entries_from_keys(*cluster_map[cluster_pk])
+                retries = 1
+                while retries >= 0:
+                    try:
+                        cluster_pk = cluster.pk
+                        cluster.clear_normalized_entries()
+                        cluster.add_normalized_entries_from_keys(*cluster_map[cluster_pk])
+                    except Exception as e:
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        for s in traceback.format_exception(exc_type, exc_value, exc_traceback):
+                            self.write_message(s)
+                        retries -= 1
+                        if retries < 0:
+                            raise e
+                    else:
+                        break
                 try:
                     self.update_normalized_center(cluster)
                 except:

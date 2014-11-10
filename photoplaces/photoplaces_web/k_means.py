@@ -53,7 +53,7 @@ class KMeans:
         center_y = np.array([])
         center_c = np.array([])
         center_month = np.array([])
-        for cluster in self.run.clusters.all():
+        for cluster in self.run.clusters.all().prefetch_related("normalized_entries", "normalized_centers"):
             normalized_entries = cluster.normalized_entries.all().values()
             x = np.concatenate((x, [e["location_x"] for e in normalized_entries]))
             y = np.concatenate((y, [e["location_y"] for e in normalized_entries]))
@@ -88,7 +88,10 @@ class KMeans:
             t.start()
 
         force = kwargs.get("force")
-        for cluster in self.run.clusters.all():
+        all_clusters = kwargs.get("all_clusters")
+        if all_clusters is None:
+            all_clusters = self.run.clusters.all().prefetch_related("photos", "normalized_entries", "normalized_centers")
+        for cluster in all_clusters:
             if cluster.normalized_centers_dirty or force:
                 q.put(cluster)
 
@@ -98,7 +101,7 @@ class KMeans:
 
     def update_normalized_center(self, cluster):
         # calculate user counts
-        if cluster.normalized_entries.count() == 0:
+        if len(cluster.normalized_entries.all()) == 0:
             return
 
         user_counts = {}
@@ -142,19 +145,29 @@ class KMeans:
         cluster.normalized_centers_dirty = False
 
         normalized_set.save()
+        cluster.save()
 
-    def process_iteration(self):
-        normalized_entries = []
+    def process_iteration(self, **kwargs):
+        normalized_entries = kwargs.get("normalized_entries")
+        add_normalized_entreis_from_clusters = False
+        if normalized_entries is None:
+            normalized_entries = []
+            add_normalized_entreis_from_clusters = True
+
         print ("Querying clusters...")
         cluster_centers = []
         cluster_map = {}
+        all_clusters = kwargs.get("all_clusters")
+        if all_clusters is None:
+            all_clusters = self.run.clusters.all().prefetch_related("normalized_centers", "normalized_entries", "photos")
         print("iterating clusters...")
-        for cluster in self.run.clusters.all():
+        for cluster in all_clusters:
             cluster_map[cluster.id] = [[],[]] 
             d = model_to_dict(cluster.normalized_centers)
             d["cluster_id"] = cluster.pk
             cluster_centers.append(d)
-            normalized_entries += cluster.normalized_entries.all().values()
+            if add_normalized_entreis_from_clusters:
+                normalized_entries += cluster.normalized_entries.all().values()
 
         print("iterating entries...")
         done = 0
@@ -192,6 +205,13 @@ class KMeans:
                 cluster_pk = cluster.pk
                 cluster.clear_normalized_entries()
                 cluster.add_normalized_entries_from_keys(*cluster_map[cluster_pk])
+                try:
+                    self.update_normalized_center(cluster)
+                except:
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                    for s in traceback.format_exception(exc_type, exc_value, exc_traceback):
+                        self.write_message(s)
+                    pass
 
                 print("Added %d entries to cluster. %3d left." % (len(cluster_map[cluster.pk][0]), q.qsize()))
 
@@ -203,7 +223,7 @@ class KMeans:
             t.start()
 
 
-        for cluster in self.run.clusters.all():
+        for cluster in all_clusters:
             q.put(cluster)
         q.join()
 

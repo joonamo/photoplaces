@@ -45,7 +45,7 @@ class KMeans:
         self.update_all_cluster_centers()
         print("Set up done")
 
-    def simple_visualization(self):
+    def simple_visualization(self, **kwargs):
         import matplotlib.pyplot as plt
         x = np.array([])
         y = np.array([])
@@ -67,8 +67,9 @@ class KMeans:
 
         plt.scatter(x, y, c = c, hold = True, marker = ".", linewidths = 0)
         plt.scatter(center_x, center_y, c = center_c, hold = True, marker = "s")
-        # for i in xrange(len(center_x)):
-        #     plt.text(center_x[i], center_y[i], np.floor(center_month[i]))
+        if kwargs.get("show_months"):
+            for i in xrange(len(center_x)):
+                plt.text(center_x[i], center_y[i], np.floor(center_month[i]))
 
         print("showing plot...")
         plt.show()

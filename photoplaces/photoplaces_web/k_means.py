@@ -57,7 +57,7 @@ class KMeans:
                     for s in traceback.format_exception(exc_type, exc_value, exc_traceback):
                         self.write_message(s)
 
-        while self.run.clusters.all().count() <= k:
+        while self.run.clusters.all().count() < k:
             # calculate distance to closest center
             def get_weight(point):
                 closest = float("inf")

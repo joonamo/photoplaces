@@ -87,7 +87,7 @@ class KMeans:
         print("Updating centers...")
         self.update_all_cluster_centers()
         print("Cluster centers created, running one iteration...")
-        self.process_iteration(normalized_entries = qs)
+        self.process_iteration(normalized_entries = qs.values())
         print("\"That took forever!\" - Yosuke Hanamura")
         print("Set up done")
 
@@ -110,15 +110,23 @@ class KMeans:
             center_c = np.concatenate((center_c, [cluster.pk]))
             center_month = np.concatenate((center_month, [cluster.normalized_centers.month_mean_natural]))
 
-
+        fig = plt.gcf()
+        fig.clear()
+        
         plt.scatter(x, y, c = c, hold = True, marker = ".", linewidths = 0)
         plt.scatter(center_x, center_y, c = center_c, hold = True, marker = "s")
         if kwargs.get("show_months"):
             for i in xrange(len(center_x)):
                 plt.text(center_x[i], center_y[i], np.floor(center_month[i]))
 
-        print("showing plot...")
-        plt.show()
+        file_name = kwargs.get("file_name")
+        if file_name is None:
+            print("showing plot...")
+            plt.show()
+        else:
+            print("saving plot...")
+            fig.set_size_inches(32,18)
+            plt.savefig(file_name, bbox_inches='tight')
 
     def update_all_cluster_centers(self, **kwargs):
         def worker():
@@ -163,6 +171,9 @@ class KMeans:
 
         normalized_entries = cluster.normalized_entries.all().values()
         entries = cluster.photos.all().values()
+        if len(entries) == 0:
+            return
+
         weights = np.array([1.0 / user_counts[e["username_md5"]] for e in entries])
         location_xs = np.array([e["location_x"] for e in normalized_entries])
         location_ys = np.array([e["location_y"] for e in normalized_entries])

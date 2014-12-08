@@ -38,7 +38,7 @@ class KMeans:
         all_points = qs.all()
         if self.run.clusters.all().count() == 0:
             first = np.random.choice(qs)
-            centers.append((first.location_x, first.location_y, first.month))
+            centers.append((first.location_x, first.location_y, first.month, {}))
             PhotoCluster.create_cluster(
                 self.run,
                 first.actual_photo,
@@ -50,7 +50,7 @@ class KMeans:
             for center in self.run.clusters.all():
                 some_photo = center.normalized_entries.all()[0]
                 try:
-                    centers.append((some_photo.location_x, some_photo.location_y, some_photo.month))
+                    centers.append((some_photo.location_x, some_photo.location_y, some_photo.month, {}))
                 except Exception as e:
                     print("Something was pretty wrong with pre-existing center:")
                     exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -60,13 +60,14 @@ class KMeans:
             # calculate distance to closest
             weights = np.array([])
             for point in all_points:
-                closest = np.sqrt(
-                    norm.dist(point.location_x, centers[0][0]) ** 2 +
-                    norm.dist(point.location_x, centers[0][1]) ** 2)
-                for center in centers[1:]:
-                    d = np.sqrt(
-                        norm.dist(point.location_x, center[0]) ** 2 +
-                        norm.dist(point.location_x, center[1]) ** 2)
+                closest = float("inf")
+                for center in centers:
+                    d = 0
+                    if not point in center[3]:
+                        center[3][point] = np.sqrt(
+                            norm.dist(point.location_x, center[0]) ** 2 +
+                            norm.dist(point.location_x, center[1]) ** 2)
+                    d = center[3][point]
                     if d < closest:
                         closest = d
                 weights = np.append(weights, closest ** 2)
@@ -74,18 +75,19 @@ class KMeans:
             # Choose more centers
             weights /= weights.sum()
             new_center = np.random.choice(qs, p = weights)
-            centers.append((new_center.location_x, new_center.location_y, new_center.month))
+            centers.append((new_center.location_x, new_center.location_y, new_center.month, {}))
 
             PhotoCluster.create_cluster(
                 self.run,
                 new_center.actual_photo,
                 new_center)
-            print("%d/%d cluster centers chosen" % (len(centers), k))
+            print("%d/%d cluster centers initialized" % (len(centers), k))
 
         print("Updating centers...")
         self.update_all_cluster_centers()
         print("Cluster centers created, running one iteration...")
         self.process_iteration(normalized_entries = qs)
+        print("\"That took forever!\" - Yosuke Hanamura")
         print("Set up done")
 
     def simple_visualization(self, **kwargs):

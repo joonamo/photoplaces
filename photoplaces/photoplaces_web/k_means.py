@@ -56,23 +56,24 @@ class KMeans:
                     exc_type, exc_value, exc_traceback = sys.exc_info()
                     for s in traceback.format_exception(exc_type, exc_value, exc_traceback):
                         self.write_message(s)
+
         while self.run.clusters.all().count() <= k:
-            # calculate distance to closest
-            weights = np.array([])
-            for point in all_points:
+            # calculate distance to closest center
+            def get_weight(point):
                 closest = float("inf")
                 for center in centers:
-                    d = 0
-                    if not point in center[3]:
-                        center[3][point] = np.sqrt(
+                    d = center[3].get(point)
+                    if d == None:
+                        d = np.sqrt(
                             norm.dist(point.location_x, center[0]) ** 2 +
-                            norm.dist(point.location_x, center[1]) ** 2)
-                    d = center[3][point]
+                            norm.dist(point.location_y, center[1]) ** 2)
+                        center[3][point] = d
                     if d < closest:
                         closest = d
-                weights = np.append(weights, closest ** 2)
+                return d
 
             # Choose more centers
+            weights = np.array([get_weight(p) for p in all_points])
             weights /= weights.sum()
             new_center = np.random.choice(qs, p = weights)
             centers.append((new_center.location_x, new_center.location_y, new_center.month, {}))

@@ -30,19 +30,45 @@ class KMeans:
         self.run.normalized_set = qs[0].normalized_set
         self.run.save()
 
-        cluster_size = qs.count() / k
         print("Creating %d clusters with %d entries..." % (k, cluster_size))
-        for i in xrange(k):
-            first = qs[i * cluster_size]
-            cluster = PhotoCluster.create_cluster(
-                self.run,
-                first.actual_photo,
-                first)
-            cluster.add_normalized_entries(qs[i * cluster_size + 1 : (i + 1) * cluster_size])
-            print("%4d/%4d clusters created" % (i, k))
 
-        print("Clusters created and values added, updating centers...")
-        self.update_all_cluster_centers()
+        # K-means++ initialization
+        centers_pp = []
+        # choose the very first cluster center
+        all_points = qs.all()
+        first = np.random.choice(qs)
+        centers.append(first.location_x, first.location_y, first.month))
+        PhotoCluster.create_cluster(
+            self.run,
+            first.actual_photo,
+            first)
+        while len(centers_pp) <= k:
+            # calculate distance to closest
+            weights = []
+            for point in all_points:
+                closest = np.sqrt(
+                    norm.dist(point.location_x, centers[0][0]) ** 2 +
+                    norm.dist(point.location_x, centers[0][0]) ** 2)
+                for center in centers_pp[1:]:
+                    d = np.sqrt(
+                        norm.dist(point.location_x, center[0][0]) ** 2 +
+                        norm.dist(point.location_x, center[0][0]) ** 2)
+                    if d < closest:
+                        closest = d
+                weigth.append(d ** 2)
+
+            # Choose more centers
+            new_center = np.random.choice(qs, p = weights)
+            centers.append(new_center.location_x, new_center.location_y, new_center.month))
+
+            PhotoCluster.create_cluster(
+                self.run,
+                new_center.actual_photo,
+                new_center)
+            print("%d/%d cluster centers chosen" % (len(centers_pp), k))
+
+        print("Cluster centers created, running one iteration...")
+        self.process_iteration(normalized_entries = qs)
         print("Set up done")
 
     def simple_visualization(self, **kwargs):
@@ -154,10 +180,10 @@ class KMeans:
 
     def process_iteration(self, **kwargs):
         normalized_entries = kwargs.get("normalized_entries")
-        add_normalized_entreis_from_clusters = False
+        add_normalized_entries_from_clusters = False
         if normalized_entries is None:
             normalized_entries = []
-            add_normalized_entreis_from_clusters = True
+            add_normalized_entries_from_clusters = True
 
         print ("Querying clusters...")
         cluster_centers = []
@@ -171,7 +197,7 @@ class KMeans:
             d = model_to_dict(cluster.normalized_centers)
             d["cluster_id"] = cluster.pk
             cluster_centers.append(d)
-            if add_normalized_entreis_from_clusters:
+            if add_normalized_entries_from_clusters:
                 normalized_entries += cluster.normalized_entries.all().values()
 
         print("iterating entries...")
@@ -188,6 +214,7 @@ class KMeans:
                 d = norm.dist(cluster["location_x_mean"], x) ** 2 +\
                 norm.dist(cluster["location_y_mean"], y) ** 2 +\
                 cm.cyclical_distance(cluster["month_mean"], month, month_cycle) ** 2
+                d = np.sqrt(d)
                 if d < lowest:
                     closest = cluster["cluster_id"]
                     lowest = d

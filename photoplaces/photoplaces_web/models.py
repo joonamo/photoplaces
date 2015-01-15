@@ -217,6 +217,9 @@ class PhotoClusterRun(models.Model):
         blank = True,
         null = True)
 
+    comment = models.TextField(
+        default = "")
+
     def write_message(self, m):
         self.messages += datetime.now().strftime("[%Y-%m-%d %H:%M:%S] ") + str(m) + "\n"
         self.save()

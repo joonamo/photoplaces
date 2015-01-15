@@ -1,8 +1,9 @@
 import json
 import time
-from models import PhotoLocationEntry, PhotoCluster
+from models import PhotoLocationEntry, PhotoCluster, PhotoClusterRun
 from datetime import datetime
 from vectorformats.Formats import Django, GeoJSON
+from django.db.models import Count
 
 def photos_box_contains(x0, y0, x1, y1, srid = None):
     start_time = time.clock()
@@ -22,7 +23,27 @@ def photos_box_contains(x0, y0, x1, y1, srid = None):
 def clusters_box_contains(x0, y0, x1, y1, **kwargs):
     start_time = time.clock()
 
-    clusters = PhotoCluster.box_contains(x0, y0, x1, y1, srid = kwargs.get("srid"), run_id = kwargs.get("run_id"))
+    #run = PhotoClusterRun.objects.annotate(cluster_count=Count('clusters')).filter(algorithm = "DJ", cluster_count__gt = 20)
+    #clusters = PhotoCluster.box_contains(x0, y0, x1, y1, srid = kwargs.get("srid"), run_id = kwargs.get("run_id"))
+    run = PhotoClusterRun.objects.get(pk = 40)
+    clusters = run.clusters.all()
+    print("[%2.4f] query found %d clusters" % ((time.clock() - start_time), clusters.count()))
+
+    start_time = time.clock()
+    djf = Django.Django(
+        geodjango = "bounding_shape", 
+        properties = [])
+    geoj = GeoJSON.GeoJSON()
+    out = geoj.encode(djf.decode(clusters))
+    print("[%2.4f] made geojson" % (time.clock() - start_time))
+
+    return out
+
+def cluster_get(pk, **kwargs):
+    start_time = time.clock()
+
+    run = PhotoClusterRun.objects.get(pk = pk)
+    clusters = run.clusters.all()
     print("[%2.4f] query found %d clusters" % ((time.clock() - start_time), clusters.count()))
 
     start_time = time.clock()

@@ -24,8 +24,9 @@ def index(request):
     cluster_runs = []
     for run in PhotoClusterRun.objects.all():
         run_info = {
-        "id": run.id,
-        "comment": run.comment
+            "id": run.id,
+            "comment": run.comment,
+            "algorithm": run.get_algorithm_display()
         }
         cluster_runs.append(run_info)
     data["cluster_runs"] = cluster_runs

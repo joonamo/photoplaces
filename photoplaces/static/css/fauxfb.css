@@ -32,6 +32,10 @@
     float: none;
     height: 24px;
     color: white;
+} 
+
+.header_row form {
+    color: black;
 }
 
 .header_row div {

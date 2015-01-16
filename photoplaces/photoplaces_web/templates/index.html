@@ -24,12 +24,15 @@
         <form id="cluster_get_form" action="rest/cluster_get" method="get">
             <select id="cluster_get_form_select">
             {% for run in cluster_runs %}
-             <option value="{{run.id}}">{{run.comment}}</option>
+             <option value="{{run.id}}">{{run.id}}: {{run.algorithm}}, "{{run.comment}}"</option>
             {% endfor %}
             </select>
             <input type="submit" value="Show">
         </form>
         <script type="text/javascript">
+        var s = $("#cluster_get_form_select");
+        s[0][s[0].length - 1].setAttribute("selected",true);
+
         // Let's make the form more AJAX!
         $("#cluster_get_form").submit(function(event) {
             event.preventDefault();

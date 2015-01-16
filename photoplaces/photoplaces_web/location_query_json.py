@@ -48,7 +48,7 @@ def cluster_get(pk, **kwargs):
 
     start_time = time.clock()
     djf = Django.Django(
-        geodjango = "bounding_shape", 
+        geodjango = "center", 
         properties = [])
     geoj = GeoJSON.GeoJSON()
     out = geoj.encode(djf.decode(clusters))

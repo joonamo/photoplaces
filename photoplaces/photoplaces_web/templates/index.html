@@ -10,10 +10,29 @@
     <script type="text/javascript"
           src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_API_KEY }}&sensor=true">
     </script>
-
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-
     <script src="/static/script/map.js"></script>
+    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?1.29.1"></script>
+    <style type="text/css">
+
+.stations, .stations svg {
+  position: absolute;
+}
+
+.stations svg {
+  width: 60px;
+  height: 20px;
+  padding-right: 100px;
+  font: 10px sans-serif;
+}
+
+.stations circle {
+  fill: red;
+  stroke: black;
+  stroke-width: 1.5px;
+}
+
+    </style>
 </head>
 
 <body onload="createMap();">
@@ -46,7 +65,7 @@
                 data: {id: $("#cluster_get_form_select").val()}
             })
                 .done(function(msg){
-                    add_cluster_to_map(msg.features, 0);
+                    add_clustering_run_to_map(msg);
                 });
         });
         </script>

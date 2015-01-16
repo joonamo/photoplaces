@@ -93,14 +93,33 @@ function add_photo_to_map(photos, i, step) {
     }
 }
 
+function add_clustering_run_to_map(data){
+    $.each(cluster_polygons, function(idx, poly){
+        poly.setMap(null);
+    });
+    bounds = new google.maps.LatLngBounds ();
+    cluster_polygons = [];
+    add_cluster_to_map(data.features, 0);
+}
+
+function finalize_clustering_run_to_map(clusters){
+    map.fitBounds(bounds);
+}
+
 function add_cluster_to_map(clusters, i){
     // Define the LatLng coordinates for the polygon's path.
     var cluster = clusters[i];
     var coords = [];
-    for (j in cluster.geometry.coordinates[0])
+    var center = cluster.geometry.coordinates;
+    bounds.extend(new google.maps.LatLng(
+            center[1],
+            center[0]));
+    for (var j = 0.0; j < 12.0; j += 1.0)
     {   
-        var c = cluster.geometry.coordinates[0][j];
-        coords.push(new google.maps.LatLng(c[1], c[0]));
+        var phase = j / 12.0 * 2 * Math.PI;
+        coords.push(new google.maps.LatLng(
+            center[1] + Math.sin(phase) * 0.003, 
+            center[0] + Math.cos(phase) * 0.003));
     }
 
     // Construct the polygon.
@@ -114,11 +133,12 @@ function add_cluster_to_map(clusters, i){
     });
 
     poly.setMap(map);
-    cluster_polygons[cluster.id] = poly;
+    cluster_polygons.push(poly);
 
-    if (i < clusters.length - 1)
-    {
+    if (i < clusters.length - 1) {
         window.setTimeout(function(){add_cluster_to_map(clusters, i + 1);}, 1);
+    } else {
+        finalize_clustering_run_to_map(clusters);
     }
 
 }

@@ -15,18 +15,19 @@
     <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?1.29.1"></script>
     <style type="text/css">
 
-.stations, .stations svg {
+.cluster_center, .cluster_center svg {
   position: absolute;
+  box-sizing: content-box;
 }
 
-.stations svg {
+.cluster_center svg {
   width: 60px;
   height: 20px;
   padding-right: 100px;
   font: 10px sans-serif;
 }
 
-.stations circle {
+.cluster_center polygon {
   fill: red;
   stroke: black;
   stroke-width: 1.5px;

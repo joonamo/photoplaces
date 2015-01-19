@@ -3,6 +3,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry, MultiPoint
 import hashlib
 from django.db import IntegrityError
+from django.db.models import Count
 from datetime import datetime
 import _mysql_exceptions
 import numpy as np
@@ -231,6 +232,19 @@ class PhotoClusterRun(models.Model):
         except models.ObjectDoesNotExist:
             return False
 
+    def cleanup_stats(self):
+        clusters = self.clusters.annotate(photo_count = Count("photos")).order_by("-photo_count")
+        max_points = clusters[0].photo_count
+        for cluster in clusters:
+            point_count_f = float(cluster.photo_count)
+            cluster.point_count_relative =  point_count_f / max_points
+            for i in xrange(1,13):
+                points_this_month = cluster.photos.filter(time__month = i).count() / point_count_f
+                setattr(cluster, ("points_month_%d_relative" % i), points_this_month)
+            cluster.stats_dirty = False
+            cluster.save()
+
+
 class PhotoCluster(models.Model):
     run = models.ForeignKey(
         PhotoClusterRun,
@@ -250,6 +264,38 @@ class PhotoCluster(models.Model):
     normalized_centers_dirty = models.BooleanField(
         default = True,
         db_index = True)
+
+    # Statistics
+    stats_dirty = models.BooleanField(
+        db_index = True,
+        default = True)
+    points_month_1_relative = models.FloatField(
+        default = 0)
+    points_month_2_relative = models.FloatField(
+        default = 0)
+    points_month_3_relative = models.FloatField(
+        default = 0)
+    points_month_4_relative = models.FloatField(
+        default = 0)
+    points_month_5_relative = models.FloatField(
+        default = 0)
+    points_month_6_relative = models.FloatField(
+        default = 0)
+    points_month_7_relative = models.FloatField(
+        default = 0)
+    points_month_8_relative = models.FloatField(
+        default = 0)
+    points_month_9_relative = models.FloatField(
+        default = 0)
+    points_month_10_relative = models.FloatField(
+        default = 0)
+    points_month_11_relative = models.FloatField(
+        default = 0)
+    points_month_12_relative = models.FloatField(
+        default = 0)
+    point_count_relative = models.FloatField(
+        db_index = True,
+        default = 1.0)
 
     # Geometry
     center = models.PointField()
@@ -290,6 +336,7 @@ class PhotoCluster(models.Model):
         self.center_dirty = True
         self.bounding_shape_dirty = True
         self.normalized_centers_dirty = True
+        self.stats_dirty = True
         self.save()
         return False
 
@@ -301,6 +348,7 @@ class PhotoCluster(models.Model):
             self.photos.add(photo)
             self.center_dirty = True
             self.bounding_shape_dirty = True
+            self.stats_dirty = True
             self.save()
             return False
 

@@ -6,7 +6,11 @@ var zoomTimeout;
 var cluster_center_overlay;
 var marker_image = {
     url: "/static/images/red_marker.png",
-    anchor: new google.maps.Point(4,4)}
+    anchor: new google.maps.Point(4,4)};
+var cluster_center_marker_icon = {
+    url: "/static/images/transparent_marker_20_20.gif",
+    size: new google.maps.Size(20, 20),
+    anchor: new google.maps.Point(10,10)};
 
 function createMap() {
     var mapOptions = {
@@ -107,42 +111,78 @@ function add_clustering_run_to_map(data){
         var layer = d3.select(this.getPanes().overlayLayer).append("div")
             .attr("class", "cluster_center");
 
-        cluster_center_overlay.draw = function() {
-            var projection = this.getProjection(),
-                padding = 10;
+        var projection = this.getProjection(),
+                max_size = 100;
+            var max_size_per_2 = max_size / 2;
 
-            var marker = layer.selectAll("svg")
+        var marker = layer.selectAll("svg")
                 .data(data.features)
                 .each(transform)
-                .enter().append("svg:svg")
+            .enter().append("svg:svg")
                 .each(transform)
-                .attr("class", "marker");
+                .each(tie_to_g_marker)
+                .attr("class", "marker")
 
-            marker.append("svg:polygon")
-                .attr("points", function(d){
-                    var out = [];
-                    for (var j = 0.0; j < 12.0; j += 1.0){
-                        var phase = j / 12.0 * 2 * Math.PI;
-                        out.push([5 + Math.sin(phase) * 4, 5 + Math.cos(phase) * 4]);
-                    }
-                    return out.join(" ");
-                });
+        marker.append("svg:polygon")
+            .attr("points", function(cluster){
+                var out = [];
+                var last_phase = 0.0;
+                var last_length = 1.0 / 12.0 * (max_size_per_2 - 1);
+                for (var j = 1.0; j <= 12.0; j += 1.0){
+                    var phase = j / 12.0 * 2 * Math.PI;
+                    var l = Math.max(Math.sqrt(cluster.properties["points_month_" + parseInt(j) + "_relative"]), 0.1) * max_size_per_2 * Math.sqrt(cluster.properties.point_count_relative);
+                    out.push([max_size_per_2 + Math.sin(last_phase) * l, max_size_per_2 - Math.cos(last_phase) * l]);
+                    out.push([max_size_per_2 + Math.sin(phase) * l, max_size_per_2 - Math.cos(phase) * l]);
+                    out.push([max_size_per_2, max_size_per_2])
+                    last_phase = phase;
+                }
+                return out.join(" ");
+            });
 
-            function transform(cluster) {
-                var coords = cluster.geometry.coordinates;
-                var d = new google.maps.LatLng(coords[1], coords[0]);
-                d = projection.fromLatLngToDivPixel(d);
-                return d3.select(this)
-                    .style("left", (d.x - padding) + "px")
-                    .style("top", (d.y - padding) + "px");
-            }
-        };
-        $.each(data.features, function(idx, cluster){
+        function transform(cluster) {
             var coords = cluster.geometry.coordinates;
             var d = new google.maps.LatLng(coords[1], coords[0]);
+            d = projection.fromLatLngToDivPixel(d);
+            return d3.select(this)
+                .style("left", (d.x - max_size_per_2) + "px")
+                .style("top", (d.y - max_size_per_2) + "px");
+        }
+
+        function tie_to_g_marker(cluster){
+            var coords = cluster.geometry.coordinates;
+            var d = new google.maps.LatLng(coords[1], coords[0]);
+            var marker = new google.maps.Marker({
+                map: map,
+                position: d,
+                icon: cluster_center_marker_icon});
+            var cluster_center = this;
+
+            google.maps.event.addListener(marker, 'mouseover', function() {
+                d3.select(cluster_center)
+                    .style("transform", "scale(3.0)")
+                    .style("animation-name", "cluster_center_highlight")
+                    .style("z-index", 1);
+            });
+
+            google.maps.event.addListener(marker, 'mouseout', function() {
+                d3.select(cluster_center)
+                    .style("transform", "scale(1.0)")
+                    .style("animation-name", "cluster_center_unhighlight")
+                    .style("z-index", -1);
+            });
+
             bounds.extend(d);
-        });
+        }
         map.fitBounds(bounds);
+
+        cluster_center_overlay.draw = function() {
+            var projection = this.getProjection();
+            layer.selectAll("svg")
+                .data(data.features)
+                .each(transform);
+
+            
+        };
     };
     cluster_center_overlay.setMap(map);
 }

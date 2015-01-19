@@ -39,17 +39,35 @@ def clusters_box_contains(x0, y0, x1, y1, **kwargs):
 
     return out
 
-def cluster_get(pk, **kwargs):
+def clustering_run_get(pk, **kwargs):
     start_time = time.clock()
 
     run = PhotoClusterRun.objects.get(pk = pk)
+    if run.clusters.filter(stats_dirty = True).count() > 0:
+        print("clustering_run_get cleanup stats")
+        run.cleanup_stats()
     clusters = run.clusters.all()
     print("[%2.4f] query found %d clusters" % ((time.clock() - start_time), clusters.count()))
 
     start_time = time.clock()
     djf = Django.Django(
         geodjango = "center", 
-        properties = [])
+        properties = [
+        "point_count_relative",
+        "points_month_1_relative",
+        "points_month_2_relative",
+        "points_month_3_relative",
+        "points_month_4_relative",
+        "points_month_5_relative",
+        "points_month_6_relative",
+        "points_month_7_relative",
+        "points_month_8_relative",
+        "points_month_9_relative",
+        "points_month_10_relative",
+        "points_month_11_relative",
+        "points_month_12_relative",
+        "pk",
+        ])
     geoj = GeoJSON.GeoJSON()
     out = geoj.encode(djf.decode(clusters))
     print("[%2.4f] made geojson" % (time.clock() - start_time))

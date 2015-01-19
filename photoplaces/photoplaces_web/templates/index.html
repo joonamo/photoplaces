@@ -3,6 +3,7 @@
 
 <head>
     <link rel="stylesheet" type="text/css" href="/static/css/fauxfb.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="/static/css/markers.css" media="screen" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 
@@ -13,27 +14,7 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="/static/script/map.js"></script>
     <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?1.29.1"></script>
-    <style type="text/css">
 
-.cluster_center, .cluster_center svg {
-  position: absolute;
-  box-sizing: content-box;
-}
-
-.cluster_center svg {
-  width: 60px;
-  height: 20px;
-  padding-right: 100px;
-  font: 10px sans-serif;
-}
-
-.cluster_center polygon {
-  fill: red;
-  stroke: black;
-  stroke-width: 1.5px;
-}
-
-    </style>
 </head>
 
 <body onload="createMap();">
@@ -41,8 +22,8 @@
 <div id="container">
     <div id="header">
         <div class="header_row">
-        <form id="cluster_get_form" action="rest/cluster_get" method="get">
-            <select id="cluster_get_form_select">
+        <form id="clustering_run_get_form" action="rest/clustering_run_get" method="get">
+            <select id="clustering_run_get_form_select">
             {% for run in cluster_runs %}
              <option value="{{run.id}}">{{run.id}}: {{run.algorithm}}, "{{run.comment}}"</option>
             {% endfor %}
@@ -50,11 +31,11 @@
             <input type="submit" value="Show">
         </form>
         <script type="text/javascript">
-        var s = $("#cluster_get_form_select");
+        var s = $("#clustering_run_get_form_select");
         s[0][s[0].length - 1].setAttribute("selected",true);
 
         // Let's make the form more AJAX!
-        $("#cluster_get_form").submit(function(event) {
+        $("#clustering_run_get_form").submit(function(event) {
             event.preventDefault();
             var $form = $(this), url = $form.attr("action");
 
@@ -63,7 +44,7 @@
                 type: "GET",
                 url: url,
                 dataType: "json",
-                data: {id: $("#cluster_get_form_select").val()}
+                data: {id: $("#clustering_run_get_form_select").val()}
             })
                 .done(function(msg){
                     add_clustering_run_to_map(msg);

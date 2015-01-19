@@ -57,8 +57,8 @@ def clusters_box_contains(request):
 
     return HttpResponse(location_query_json.clusters_box_contains(x0, y0, x1, y1, srid = srid))
 
-def cluster_get(request):
+def clustering_run_get(request):
     q = request.GET
     pk = q["id"]
 
-    return HttpResponse(location_query_json.cluster_get(pk))
+    return HttpResponse(location_query_json.clustering_run_get(pk))

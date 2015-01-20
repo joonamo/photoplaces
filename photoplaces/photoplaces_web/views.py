@@ -62,3 +62,9 @@ def clustering_run_get(request):
     pk = q["id"]
 
     return HttpResponse(location_query_json.clustering_run_get(pk))
+
+def cluster_get(request):
+    q = request.GET
+    pk = q["id"]
+
+    return HttpResponse(location_query_json.cluster_get(pk))

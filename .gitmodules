@@ -1,0 +1,3 @@
+[submodule "vectorformats"]
+	path = vectorformats
+	url = https://github.com/joonamo/vectorformats.git

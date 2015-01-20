@@ -2,7 +2,8 @@ import json
 import time
 from models import PhotoLocationEntry, PhotoCluster, PhotoClusterRun
 from datetime import datetime
-from vectorformats.Formats import Django, GeoJSON
+import vectorformats.formats.django as vf_django
+import vectorformats.formats.geojson as vf_geojson
 from django.db.models import Count
 
 def photos_box_contains(x0, y0, x1, y1, srid = None):
@@ -11,10 +12,10 @@ def photos_box_contains(x0, y0, x1, y1, srid = None):
     print("[%2.4f] query found %d photos" % ((time.clock() - start_time), photos.count()))
 
     start_time = time.clock()
-    djf = Django.Django(
+    djf = vf_django.Django(
         geodjango = "location", 
         properties = ["photo_thumb_url", "photo_url", "photo_id"])
-    geoj = GeoJSON.GeoJSON()
+    geoj = vf_geojson.GeoJSON()
     out = geoj.encode(djf.decode(photos))
     print("[%2.4f] made geojson" % (time.clock() - start_time))
 
@@ -30,10 +31,10 @@ def clusters_box_contains(x0, y0, x1, y1, **kwargs):
     print("[%2.4f] query found %d clusters" % ((time.clock() - start_time), clusters.count()))
 
     start_time = time.clock()
-    djf = Django.Django(
+    djf = vf_django.Django(
         geodjango = "bounding_shape", 
         properties = [])
-    geoj = GeoJSON.GeoJSON()
+    geoj = vf_geojson.GeoJSON()
     out = geoj.encode(djf.decode(clusters))
     print("[%2.4f] made geojson" % (time.clock() - start_time))
 
@@ -50,8 +51,8 @@ def clustering_run_get(pk, **kwargs):
     print("[%2.4f] query found %d clusters" % ((time.clock() - start_time), clusters.count()))
 
     start_time = time.clock()
-    djf = Django.Django(
-        geodjango = "center", 
+    djf = vf_django.Django(
+        geodjango_collection = ["center", "bounding_shape"],
         properties = [
         "point_count_relative",
         "points_month_1_relative",
@@ -68,8 +69,37 @@ def clustering_run_get(pk, **kwargs):
         "points_month_12_relative",
         "pk",
         ])
-    geoj = GeoJSON.GeoJSON()
+    geoj = vf_geojson.GeoJSON()
     out = geoj.encode(djf.decode(clusters))
+    print("[%2.4f] made geojson" % (time.clock() - start_time))
+
+    return out
+
+def cluster_get(pk, **kwargs):
+    start_time = time.clock()
+
+    cluster = PhotoCluster.objects.filter(pk = pk)
+
+    djf = vf_django.Django(
+        geodjango = "bounding_shape", 
+        properties = [
+        "point_count_relative",
+        "points_month_1_relative",
+        "points_month_2_relative",
+        "points_month_3_relative",
+        "points_month_4_relative",
+        "points_month_5_relative",
+        "points_month_6_relative",
+        "points_month_7_relative",
+        "points_month_8_relative",
+        "points_month_9_relative",
+        "points_month_10_relative",
+        "points_month_11_relative",
+        "points_month_12_relative",
+        "pk",
+        ])
+    geoj = vf_geojson.GeoJSON()
+    out = geoj.encode(djf.decode(cluster))
     print("[%2.4f] made geojson" % (time.clock() - start_time))
 
     return out

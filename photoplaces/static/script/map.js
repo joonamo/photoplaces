@@ -105,10 +105,9 @@ function add_clustering_run_to_map(data){
     bounds = new google.maps.LatLngBounds ();
     cluster_polygons = [];
     cluster_center_overlay = new google.maps.OverlayView();
-    //add_cluster_to_map(data.features, 0);
 
     cluster_center_overlay.onAdd = function() {
-        var layer = d3.select(this.getPanes().overlayLayer).append("div")
+        var layer = d3.select(this.getPanes().overlayMouseTarget).append("div")
             .attr("class", "cluster_center");
 
         var projection = this.getProjection(),
@@ -130,7 +129,8 @@ function add_clustering_run_to_map(data){
                 var last_length = 1.0 / 12.0 * (max_size_per_2 - 1);
                 for (var j = 1.0; j <= 12.0; j += 1.0){
                     var phase = j / 12.0 * 2 * Math.PI;
-                    var l = Math.max(Math.sqrt(cluster.properties["points_month_" + parseInt(j) + "_relative"]), 0.1) * max_size_per_2 * Math.sqrt(cluster.properties.point_count_relative);
+                    var l = (Math.sqrt(cluster.properties["points_month_" + parseInt(j) + "_relative"]) * 0.7 + 0.3) * 
+                        max_size_per_2 * (Math.sqrt(cluster.properties.point_count_relative) * 0.7 + 0.3);
                     out.push([max_size_per_2 + Math.sin(last_phase) * l, max_size_per_2 - Math.cos(last_phase) * l]);
                     out.push([max_size_per_2 + Math.sin(phase) * l, max_size_per_2 - Math.cos(phase) * l]);
                     out.push([max_size_per_2, max_size_per_2])

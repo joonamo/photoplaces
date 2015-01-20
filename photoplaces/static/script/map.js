@@ -140,7 +140,7 @@ function add_clustering_run_to_map(data){
             });
 
         function transform(cluster) {
-            var coords = cluster.geometry.coordinates;
+            var coords = cluster.geometry.geometries[0].coordinates;
             var d = new google.maps.LatLng(coords[1], coords[0]);
             d = projection.fromLatLngToDivPixel(d);
             return d3.select(this)
@@ -149,7 +149,7 @@ function add_clustering_run_to_map(data){
         }
 
         function tie_to_g_marker(cluster){
-            var coords = cluster.geometry.coordinates;
+            var coords = cluster.geometry.geometries[0].coordinates;
             var d = new google.maps.LatLng(coords[1], coords[0]);
             var marker = new google.maps.Marker({
                 map: map,

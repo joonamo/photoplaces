@@ -4,6 +4,7 @@ var markers = {};
 var cluster_polygons = {};
 var zoomTimeout;
 var cluster_center_overlay;
+var active_cluster_poly;
 var marker_image = {
     url: "/static/images/red_marker.png",
     anchor: new google.maps.Point(4,4)};
@@ -158,10 +159,46 @@ function add_clustering_run_to_map(data){
             var cluster_center = this;
 
             google.maps.event.addListener(marker, 'mouseover', function() {
-                d3.select(cluster_center)
+                d3_cluster_center = d3.select(cluster_center)
+                d3_cluster_center
                     .style("transform", "scale(3.0)")
                     .style("animation-name", "cluster_center_highlight")
                     .style("z-index", 1);
+            });
+
+            google.maps.event.addListener(marker, 'click', function() {
+                if (active_cluster_poly) {
+                    active_cluster_poly.setMap(null);
+                }
+
+                d3_cluster_center = d3.select(cluster_center)
+                poly_bounds = new google.maps.LatLngBounds ();
+
+                // Define the LatLng coordinates for the polygon's path.
+                var coords = d3_cluster_center[0][0].__data__.geometry.geometries[1].coordinates[0];
+                var g_coords = [];
+                for (j in coords)
+                {   
+                    var c = coords[j];
+                    var co = new google.maps.LatLng(c[1], c[0]);
+                    g_coords.push(co);
+                    poly_bounds.extend(co);
+                }
+
+                // Construct the polygon.
+                var poly = new google.maps.Polygon({
+                paths: g_coords,
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.35
+                });
+
+                poly.setMap(map);
+                active_cluster_poly = poly;
+
+                map.fitBounds(poly_bounds);
             });
 
             google.maps.event.addListener(marker, 'mouseout', function() {
@@ -179,9 +216,7 @@ function add_clustering_run_to_map(data){
             var projection = this.getProjection();
             layer.selectAll("svg")
                 .data(data.features)
-                .each(transform);
-
-            
+                .each(transform);            
         };
     };
     cluster_center_overlay.setMap(map);
@@ -226,4 +261,8 @@ function add_cluster_to_map(clusters, i){
         finalize_clustering_run_to_map(clusters);
     }
 
+}
+
+function show_all() {
+    map.fitBounds(bounds);
 }

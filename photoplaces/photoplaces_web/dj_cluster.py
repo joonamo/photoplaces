@@ -1,10 +1,12 @@
 from models import PhotoClusterRun
 from models import PhotoCluster
+from math_functions.cyclical_math import month_wrap
 import traceback
 import time
 from datetime import datetime
 import sys
 from django.db import models
+from django.db.models import Q
 
 class DjCluster:
     def __init__(self):
@@ -15,7 +17,7 @@ class DjCluster:
         print(msg)
         #self.run.write_message(msg)
 
-    def set_up(self, qs, min_pts, eps):
+    def set_up(self, qs, min_pts, eps, **kwargs):
         # Set up
         self.write_message("Setting up...")
         self.run.status = "W"
@@ -23,9 +25,15 @@ class DjCluster:
         self.run.density_min_pts = min_pts
         self.eps = eps
         self.run.density_eps = eps
+        eps_month = kwargs.get("eps_month")
+        if not(eps_month):
+            self.eps_month = -1
+        else:
+            self.run.density_eps_month = eps_month
+            self.eps_month = eps_month
         self.run.save()
-        self.run.unprocessed.add(*[photo.pk for photo in qs])
-        self.write_message("Set up Clustering for %d photos..." % (qs.count(),))
+        self.run.unprocessed.add(*[photo["id"] for photo in qs.values()])
+        self.write_message("Set up Clustering for %d photos, clustering id %d..." % (qs.count(), self.run.pk))
 
     def go(self, bbox_func, debug = False):
         try:
@@ -38,8 +46,6 @@ class DjCluster:
             self.write_message("Starting Clustering %d photos..." % (qs_length,))
             while self.run.unprocessed.all().count() > 0:
                 photo = self.run.unprocessed.all()[0]
-                if count % 1 == 0:
-                    self.write_message("%d/%d photos done, %d left, I have %d clusters" % (count, qs_length, self.run.unprocessed.all().count(), self.run.clusters.all().count()))
                 nbh_count, nbh, clusters = self.dj_neighborhood(photo, bbox_func, debug)
                 if nbh_count == 0:
                     pass # is noise
@@ -47,6 +53,9 @@ class DjCluster:
                     self.dj_join(nbh, clusters, debug) 
                 else:
                     self.dj_cluster_new(nbh, debug)
+
+                if nbh_count > 0:
+                    self.write_message("%d photos processed, %d/%d left, %d clusters found so far" % (count, self.run.unprocessed.all().count(), qs_length, self.run.clusters.all().count()))
 
                 self.run.mark_processed(photo) # Just to make sure...
                 count += 1
@@ -77,12 +86,23 @@ class DjCluster:
                 import pdb
                 pdb.set_trace()
 
-
     def dj_neighborhood(self, point, bbox_func, debug = False):
         try:
             coords = point.location.coords
             eps_half = self.eps / 2.0
             candidates = bbox_func(coords[0] - eps_half, coords[1] - eps_half, coords[0] + eps_half, coords[1] + eps_half)
+
+            if self.eps_month > -1:
+                count = candidates.order_by('username_md5').values('username_md5').distinct().count()
+                if count < self.min_pts:
+                    print("candidates before month filter: %d, seen users: %d" % (candidates.count(), count))
+                    return 0, [], []
+
+                month = point.time.month
+                q = Q(time__month = month)
+                for offset in xrange(1, self.eps_month + 1):
+                    q = q | Q(time__month = month_wrap(month - offset)) | Q(time__month = month_wrap(month + offset))
+                candidates = candidates.filter(q)
             nbh = []
             seen_users = []
             clusters = []
@@ -117,7 +137,7 @@ class DjCluster:
         try:
             target_cluster = clusters[0]
             for cluster in clusters[1:]:
-                target_cluster.photos.add(*[photo.pk for photo in cluster.photos.all()])
+                target_cluster.photos.add(*[photo["id"] for photo in cluster.photos.all().values()])
                 cluster.delete()
             self.run.unprocessed.remove(*[photo.pk for photo in nbh])
             target_cluster.photos.add(*[photo.pk for photo in nbh])
@@ -157,12 +177,9 @@ class DjCluster:
 def dj_test():
     dj = DjCluster()
     from models import PhotoLocationEntry
-    qs = PhotoLocationEntry.objects.all()#box_contains(135.55515242401123,34.686962336951424,135.5,34.62299551708821)
+    qs = PhotoLocationEntry.objects.all()#PhotoLocationEntry.box_contains(135.55515242401123,34.686962336951424,135.5,34.62299551708821)
 
-    dj.set_up(qs, 20, 0.001)
+    dj.set_up(qs, 8, 0.001, eps_month = 2)
     dj.go(PhotoLocationEntry.box_contains, True)
 
-def cleanup_test():
-    from models import PhotoClusterRun
-    for run in PhotoClusterRun.objects.all():
-        run.delete()
+    return dj

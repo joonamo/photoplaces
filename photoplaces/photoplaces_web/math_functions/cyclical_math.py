@@ -27,3 +27,10 @@ def cycle_avg(values, cycle_length, **kwargs):
     quaternions = quaternions * weights
     s = np.sum(quaternions, axis=0)
     return quaternion_to_cycle_v(s / np.linalg.norm(s), cycle_length)
+
+def month_wrap(v):
+    while v < 1:
+        v += 12
+    while v > 12:
+        v -= 12
+    return v

@@ -204,6 +204,10 @@ class PhotoClusterRun(models.Model):
         "Eps value for density based clustering",
         blank = True,
         null = True)
+    density_eps_month = models.IntegerField(
+        "Eps value of months for density based clustering",
+        blank = True,
+        null = True)
     density_min_pts = models.IntegerField(
         "MinPts value for density based clustering",
         blank = True,

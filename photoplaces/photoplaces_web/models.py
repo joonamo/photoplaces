@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.gis.db import models
-from django.contrib.gis.geos import GEOSGeometry, MultiPoint
+from django.contrib.gis.geos import GEOSGeometry, MultiPoint, Polygon
 import hashlib
 from django.db import IntegrityError
 from django.db.models import Count
@@ -367,7 +367,14 @@ class PhotoCluster(models.Model):
         return self.center
 
     def update_bounding_shape(self):
-        self.bounding_shape = MultiPoint([e.location for e in self.photos.all()]).convex_hull
+        ch = MultiPoint([e.location for e in self.photos.all()]).convex_hull
+        if len(ch.coords) > 2:
+            self.bounding_shape = ch
+        else:
+            if ch.geom_typeid == 0:
+                self.bounding_shape = Polygon.from_bbox((ch.coords[0], ch.coords[1], ch.coords[0], ch.coords[1]))
+            else:
+                self.bounding_shape = Polygon.from_bbox((ch.coords[0][0], ch.coords[0][1], ch.coords[1][0], ch.coords[1][1]))
         self.bounding_shape_dirty = False
         self.save()
         return self.bounding_shape

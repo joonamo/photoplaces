@@ -9,9 +9,19 @@ from django.db import models
 from django.db.models import Q
 
 class DjCluster:
-    def __init__(self):
-        self.run = PhotoClusterRun(
-            algorithm = "DJ",)
+    def __init__(self, **kwargs):
+        run = kwargs.get("run")
+        if not(run):
+            self.run = PhotoClusterRun(algorithm = "DJ",)
+        else:
+            self.run = run
+            self.min_pts = self.run.density_min_pts
+            self.eps = self.run.density_eps
+            eps_month = self.run.density_eps_month
+            if not(eps_month):
+                self.eps_month = -1
+            else:
+                self.eps_month = eps_month
 
     def write_message(self, msg):
         print(msg)
@@ -35,6 +45,7 @@ class DjCluster:
         self.run.unprocessed.add(*[photo["id"] for photo in qs.values()])
         self.write_message("Set up Clustering for %d photos, clustering id %d..." % (qs.count(), self.run.pk))
 
+
     def go(self, bbox_func, debug = False):
         try:
             self.run.status = "W"
@@ -48,17 +59,16 @@ class DjCluster:
                 photo = self.run.unprocessed.all()[0]
                 nbh_count, nbh, clusters = self.dj_neighborhood(photo, bbox_func, debug)
                 if nbh_count == 0:
-                    pass # is noise
+                    self.run.mark_processed(photo)
                 elif len(clusters) > 0:
                     self.dj_join(nbh, clusters, debug) 
                 else:
                     self.dj_cluster_new(nbh, debug)
 
+                count += 1
+
                 if nbh_count > 0:
                     self.write_message("%d photos processed, %d/%d left, %d clusters found so far" % (count, self.run.unprocessed.all().count(), qs_length, self.run.clusters.all().count()))
-
-                self.run.mark_processed(photo) # Just to make sure...
-                count += 1
 
             self.write_message("Clustering done, found %d clusters. Starting clean up..." % (self.run.clusters.all().count(),) )
 
@@ -95,7 +105,7 @@ class DjCluster:
             if self.eps_month > -1:
                 count = candidates.order_by('username_md5').values('username_md5').distinct().count()
                 if count < self.min_pts:
-                    print("candidates before month filter: %d, seen users: %d" % (candidates.count(), count))
+                    #print("candidates before month filter: %d, seen users: %d" % (candidates.count(), count))
                     return 0, [], []
 
                 month = point.time.month
@@ -107,7 +117,7 @@ class DjCluster:
             seen_users = []
             clusters = []
             count = candidates.order_by('username_md5').values('username_md5').distinct().count()
-            print("candidates: %d, seen users: %d" % (candidates.count(), count))
+            #print("candidates: %d, seen users: %d" % (candidates.count(), count))
             if count < self.min_pts:
                 return 0, [], []
             for candidate in candidates:
@@ -158,8 +168,8 @@ class DjCluster:
     def dj_cluster_new(self, nbh, debug = False):
         try:
             target_cluster = PhotoCluster.create_cluster(self.run, nbh[0])
-            self.run.unprocessed.remove(*[photo.pk for photo in nbh[1:]])
             target_cluster.photos.add(*[photo.pk for photo in nbh[1:]])
+            self.run.unprocessed.remove(*[photo.pk for photo in nbh])
 
             return target_cluster
 

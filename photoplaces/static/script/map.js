@@ -16,7 +16,7 @@ var cluster_center_marker_icon = {
 function createMap() {
     var mapOptions = {
       center: new google.maps.LatLng(0, 0),
-      zoom: 1,
+      zoom: 2,
       mapTypeId: google.maps.MapTypeId.ROADMAP
     };
     map = new google.maps.Map(document.getElementById("canvas"),
@@ -170,6 +170,8 @@ function add_clustering_run_to_map(data){
                 if (active_cluster_poly) {
                     active_cluster_poly.setMap(null);
                 }
+
+                sidebar_display_cluster_info(d3_cluster_center[0][0].__data__.id);
 
                 d3_cluster_center = d3.select(cluster_center)
                 poly_bounds = new google.maps.LatLngBounds ();

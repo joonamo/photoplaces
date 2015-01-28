@@ -5,9 +5,19 @@
 
 #canvas{
     position:absolute;
-    width:100%;
     top: 50px;
     bottom: 0;
+    right: 420px;
+    left: 0px;
+}
+
+#sidebar{
+    position:absolute;
+    width:420px;
+    top: 50px;
+    bottom: 0;
+    right: 0px;
+    overflow-y: scroll;
 }
 
 #canvas img{

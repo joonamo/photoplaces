@@ -242,9 +242,11 @@ class PhotoClusterRun(models.Model):
         for cluster in clusters:
             point_count_f = float(cluster.photo_count)
             cluster.point_count_relative =  point_count_f / max_points
+            cluster.point_count = cluster.photo_count
             for i in xrange(1,13):
-                points_this_month = cluster.photos.filter(time__month = i).count() / point_count_f
-                setattr(cluster, ("points_month_%d_relative" % i), points_this_month)
+                points_this_month = cluster.photos.filter(time__month = i).count()
+                setattr(cluster, ("points_month_%d" % i), points_this_month)
+                setattr(cluster, ("points_month_%d_relative" % i), points_this_month / point_count_f)
             cluster.stats_dirty = False
             cluster.save()
 
@@ -273,6 +275,35 @@ class PhotoCluster(models.Model):
     stats_dirty = models.BooleanField(
         db_index = True,
         default = True)
+
+    points_month_1 = models.IntegerField(
+        default = 0)
+    points_month_2 = models.IntegerField(
+        default = 0)
+    points_month_3 = models.IntegerField(
+        default = 0)
+    points_month_4 = models.IntegerField(
+        default = 0)
+    points_month_5 = models.IntegerField(
+        default = 0)
+    points_month_6 = models.IntegerField(
+        default = 0)
+    points_month_7 = models.IntegerField(
+        default = 0)
+    points_month_8 = models.IntegerField(
+        default = 0)
+    points_month_9 = models.IntegerField(
+        default = 0)
+    points_month_10 = models.IntegerField(
+        default = 0)
+    points_month_11 = models.IntegerField(
+        default = 0)
+    points_month_12 = models.IntegerField(
+        default = 0)
+    point_count = models.IntegerField(
+        db_index = True,
+        default = 1.0)
+
     points_month_1_relative = models.FloatField(
         default = 0)
     points_month_2_relative = models.FloatField(

@@ -5,6 +5,8 @@ from datetime import datetime
 import vectorformats.formats.django as vf_django
 import vectorformats.formats.geojson as vf_geojson
 from django.db.models import Count
+from django.core.serializers.json import DjangoJSONEncoder
+from random import randrange
 
 def photos_box_contains(x0, y0, x1, y1, srid = None):
     start_time = time.clock()
@@ -103,3 +105,23 @@ def cluster_get(pk, **kwargs):
     print("[%2.4f] made geojson" % (time.clock() - start_time))
 
     return out
+
+def cluster_get_stats(pk, **kwargs):
+    cluster = PhotoCluster.objects.get(pk = pk)
+
+    out = {}
+
+    out["point_count_relative"] = cluster.point_count_relative
+    out["point_count"] = cluster.point_count
+    for i in xrange(1,13):
+        field_name = ("points_month_%d" % i)
+        out[field_name] = getattr(cluster, field_name)
+        out[field_name] = getattr(cluster, field_name + "_relative")
+
+    start_idx = randrange(0, max(cluster.point_count, cluster.point_count - 29))
+    photos = []
+    for point in cluster.photos.all()[start_idx : start_idx + min(cluster.point_count, 30)].values("photo_id", "photo_url", "photo_thumb_url", "time", "photo_title"):
+        photos.append(point)
+    out["photos"] = photos
+
+    return json.dumps(out, cls=DjangoJSONEncoder)

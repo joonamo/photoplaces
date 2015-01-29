@@ -2,10 +2,12 @@
 <html>
 
 <head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+
     <link rel="stylesheet" type="text/css" href="/static/css/fauxfb.css" media="screen" />
     <link rel="stylesheet" type="text/css" href="/static/css/markers.css" media="screen" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 
     <script type="text/javascript"
           src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_API_KEY }}&sensor=true">
@@ -15,6 +17,8 @@
     <script src="/static/script/sidebar.js"></script>
     <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?1.29.1"></script>
 
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+
 </head>
 
 <body onload="createMap();init_sidebar();">
@@ -22,13 +26,15 @@
 <div id="container">
     <div id="header">
         <div class="header_row">
-        <form id="clustering_run_get_form" action="rest/clustering_run_get" method="get">
-            <select id="clustering_run_get_form_select">
-            {% for run in cluster_runs %}
-             <option value="{{run.id}}">{{run.id}}: {{run.algorithm}}, "{{run.comment}}"</option>
-            {% endfor %}
-            </select>
-            <input type="submit" value="Show">
+        <form id="clustering_run_get_form" action="rest/clustering_run_get" class="form-inline" method="get">
+            <div class="form-group">
+                <select id="clustering_run_get_form_select" class="form-control">
+                {% for run in cluster_runs %}
+                 <option value="{{run.id}}">{{run.id}}: {{run.algorithm}}, "{{run.comment}}"</option>
+                {% endfor %}
+                </select>
+                <input type="submit" value="Show" class="btn btn-primary">
+            </div>
         </form>
         <script type="text/javascript">
         var s = $("#clustering_run_get_form_select");
@@ -53,7 +59,7 @@
         </script>
         </div>
         <div class="header_row">
-            <button id="show_all_button" onclick="show_all()">Reset view</button>
+            <button id="show_all_button" onclick="show_all()" class="btn btn-warning">Reset view</button>
         </div>
     </div>
 

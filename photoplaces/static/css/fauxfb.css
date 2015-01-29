@@ -78,11 +78,11 @@
 }
 
 .header_row {
-    float: none;
+    float: left;
     height: 24px;
 } 
 
-.header_row form {
+/*.header_row form {
     color: black;
 }
 
@@ -92,7 +92,7 @@
 
 .header_row div {
     float: left;
-}
+}*/
 
 .logwindow {
     margin: 10px;

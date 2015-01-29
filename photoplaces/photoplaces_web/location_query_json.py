@@ -118,10 +118,10 @@ def cluster_get_stats(pk, **kwargs):
         out[field_name] = getattr(cluster, field_name)
         out[field_name] = getattr(cluster, field_name + "_relative")
 
-    start_idx = randrange(0, max(cluster.point_count, cluster.point_count - 29))
-    photos = []
-    for point in cluster.photos.all()[start_idx : start_idx + min(cluster.point_count, 30)].values("photo_id", "photo_url", "photo_thumb_url", "time", "photo_title"):
-        photos.append(point)
-    out["photos"] = photos
+    # start_idx = randrange(0, max(cluster.point_count, cluster.point_count - 29))
+    # photos = []
+    # for point in cluster.photos.all()[start_idx : start_idx + min(cluster.point_count, 30)].values("photo_id", "photo_url", "photo_thumb_url", "time", "photo_title"):
+    #     photos.append(point)
+    # out["photos"] = photos
 
     return json.dumps(out, cls=DjangoJSONEncoder)

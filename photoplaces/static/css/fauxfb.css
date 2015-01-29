@@ -24,6 +24,45 @@
      max-width: none;
 }
 
+.sidebar_photo_container {
+    width: 33%;
+    float: left;
+    overflow: hidden;
+    height: 150px;
+    background-position: center;
+    background-size: cover;
+    position: relative;
+}
+
+.sidebar_photo_info {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(100, 100, 100, 0.7);
+    position: absolute;
+}
+
+.sidebar_photo_container a {
+    text-decoration: none;
+    color: white;
+}
+
+.sidebar_photo_container a :hover {
+    text-decoration: none;
+    color: white;
+}
+
+.sidebar_photo_container h1 {
+    margin: 0;
+    font-size: 12px;
+}
+
+
+.sidebar_photo_container h2 {
+    margin: 0;
+    font-size: 10px;
+}
+
 #friendwheel{
     width:100%;
     height: 100%;

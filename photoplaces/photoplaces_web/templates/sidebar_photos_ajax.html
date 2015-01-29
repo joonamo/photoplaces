@@ -1,0 +1,10 @@
+{% for photo in photos%}
+<div class="sidebar_photo_container" style="background-image: url({{ photo.photo_url }})">
+    <a target="_blank" href="http://www.flickr.com/photo.gne?id={{ photo.photo_id }}">
+        <div class="sidebar_photo_info">
+        <h2>{{ photo.time|date:"Y-j-n (D) G:i" }}</h2>
+        <h1>{{ photo.photo_title }}</h1>
+        </div>
+    </a>
+</div>
+{% endfor %}

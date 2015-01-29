@@ -11,6 +11,7 @@ from django.conf import settings
 import location_query_json
 from models import PhotoLocationEntry, PhotoCluster, PhotoClusterRun
 from pprint import pprint
+from random import randrange, shuffle
 
 def standard_data():
     return {
@@ -74,3 +75,20 @@ def cluster_get_stats(request):
     pk = q["id"]
 
     return HttpResponse(location_query_json.cluster_get_stats(pk))
+
+def sidebar_photos_ajax(request):
+    if not request.is_ajax():
+        raise PermissionDenied
+    q = request.GET
+    pk = q["id"]
+    data = standard_data()
+
+    cluster = PhotoCluster.objects.get(pk = pk)
+    pks = list(cluster.photos.all().values_list("id", flat=True))
+    shuffle(pks)
+    photos = []
+    for point in PhotoLocationEntry.objects.filter(id__in = pks[:30]).values("photo_url", "photo_id", "time", "photo_title"):
+        photos.append(point)
+    data["photos"] = photos
+
+    return render_to_response('sidebar_photos_ajax.html', data, context_instance=RequestContext(request))

@@ -15,4 +15,5 @@ urlpatterns = patterns('',
     url(r'^rest/clustering_run_get$', 'photoplaces_web.views.clustering_run_get'),
     url(r'^rest/cluster_get$', 'photoplaces_web.views.cluster_get'),
     url(r'^rest/cluster_get_stats$', 'photoplaces_web.views.cluster_get_stats'),
+    url(r'^ajax/sidebar_photos$', 'photoplaces_web.views.sidebar_photos_ajax'),
 )

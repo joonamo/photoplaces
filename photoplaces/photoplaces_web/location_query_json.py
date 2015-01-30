@@ -116,7 +116,7 @@ def cluster_get_stats(pk, **kwargs):
     for i in xrange(1,13):
         field_name = ("points_month_%d" % i)
         out[field_name] = getattr(cluster, field_name)
-        out[field_name] = getattr(cluster, field_name + "_relative")
+        out[field_name + "_relative"] = getattr(cluster, field_name + "_relative")
 
     # start_idx = randrange(0, max(cluster.point_count, cluster.point_count - 29))
     # photos = []

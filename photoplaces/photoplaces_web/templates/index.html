@@ -23,7 +23,7 @@
 
 <body onload="createMap();init_sidebar();">
 
-<div id="container">
+<div id="container" class="container-fluid">
     <div id="header">
         <div class="header_row">
         <form id="clustering_run_get_form" action="rest/clustering_run_get" class="form-inline" method="get">
@@ -65,12 +65,17 @@
 
     <div id="canvas">
     </div>
-    </div>
+
     <div id="sidebar">
         <div id="sidebar_status">
         <p>Choose a cluster to display information.</p>
         </div>
         <div id="sidebar_stats">
+            <div id="sidebar_stats_diagram">
+                <svg class="sidebar_chart"></svg>
+            </div>
+            <div id="sidebar_stats_stats">
+            </div>
         </div>
         <div id="sidebar_photos">
         </div>

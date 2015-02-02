@@ -6,10 +6,10 @@ var zoomTimeout;
 var cluster_center_overlay;
 var active_cluster_poly;
 var marker_image = {
-    url: "/static/images/red_marker.png",
+    url: STATIC_URL + "images/red_marker.png",
     anchor: new google.maps.Point(4,4)};
 var cluster_center_marker_icon = {
-    url: "/static/images/transparent_marker_20_20.gif",
+    url: STATIC_URL + "images/transparent_marker_20_20.gif",
     size: new google.maps.Size(20, 20),
     anchor: new google.maps.Point(10,10)};
 

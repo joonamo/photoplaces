@@ -1,3 +1,4 @@
+{% load staticfiles %}
 <!DOCTYPE html>
 <html>
 
@@ -5,16 +6,16 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
 
-    <link rel="stylesheet" type="text/css" href="/static/css/fauxfb.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="/static/css/markers.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/fauxfb.css" %}" media="screen" />
+    <link rel="stylesheet" type="text/css" href="{% static "css/markers.css" %}" media="screen" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <script type="text/javascript"
           src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_API_KEY }}&sensor=true">
     </script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <script src="/static/script/map.js"></script>
-    <script src="/static/script/sidebar.js"></script>
+    <script src="{% static "script/map.js" %}"></script>
+    <script src="{% static "script/sidebar.js" %}"></script>
     <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?1.29.1"></script>
 
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>

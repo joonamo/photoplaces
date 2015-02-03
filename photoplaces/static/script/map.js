@@ -1,19 +1,25 @@
 var map;
-var bounds = new google.maps.LatLngBounds ();
+var bounds;
 var markers = {};
 var cluster_polygons = {};
 var zoomTimeout;
 var cluster_center_overlay;
 var active_cluster_poly;
-var marker_image = {
-    url: STATIC_URL + "images/red_marker.png",
-    anchor: new google.maps.Point(4,4)};
-var cluster_center_marker_icon = {
-    url: STATIC_URL + "images/transparent_marker_20_20.gif",
-    size: new google.maps.Size(20, 20),
-    anchor: new google.maps.Point(10,10)};
+var marker_image;
+var cluster_center_marker_icon;
 
 function createMap() {
+    bounds = new google.maps.LatLngBounds ();
+    markers;
+    cluster_polygons;
+    marker_image = {
+        url: STATIC_URL + "images/red_marker.png",
+        anchor: new google.maps.Point(4,4)};
+    cluster_center_marker_icon = {
+        url: STATIC_URL + "images/transparent_marker_20_20.gif",
+        size: new google.maps.Size(20, 20),
+        anchor: new google.maps.Point(10,10)};
+
     var mapOptions = {
       center: new google.maps.LatLng(0, 0),
       zoom: 2,

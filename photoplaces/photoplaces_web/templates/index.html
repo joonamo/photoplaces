@@ -11,19 +11,20 @@
     <link rel="stylesheet" type="text/css" href="{% static "css/markers.css" %}" media="screen" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <script type="text/javascript"
-          src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_API_KEY }}&sensor=true">
-    </script>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="{% static "script/map.js" %}"></script>
-    <script src="{% static "script/sidebar.js" %}"></script>
-    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?1.29.1"></script>
+    <script async type="text/javascript"
+          src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_API_KEY }}&sensor=true&callback=createMap">
+    </script>
 
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="{% static "script/sidebar.js" %}"></script>
+    <script async type="text/javascript" src="http://d3js.org/d3.v2.js" onload="init_sidebar();"></script>
+
+    <script async src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
 
 </head>
 
-<body onload="createMap();init_sidebar();">
+<body>
 
 <div id="container" class="container-fluid">
     <div id="header">

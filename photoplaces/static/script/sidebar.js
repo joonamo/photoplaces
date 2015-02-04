@@ -52,7 +52,7 @@ function init_sidebar() {
 
         bars.enter()
             .append("rect")
-            .attr("class", "bar")
+            .attr("class", function(d) { return "bar month_" + d[0]; })
             .attr("x", function(d) { return x(d[0]); })
             .attr("width", x.rangeBand());
 

@@ -52,3 +52,51 @@
 .x.axis path {
   display: none;
 }*/
+
+.month_1 {
+  fill: rgb(46,164,220);
+}
+
+.month_2 {
+  fill: rgb(57, 180, 188);
+}
+
+.month_3 {
+  fill: rgb(68, 195, 156);
+}
+
+.month_4 {
+  fill: rgb(78, 210, 125);
+}
+
+.month_5 {
+  fill: rgb(89, 226, 92);
+}
+
+.month_6 {
+  fill: rgb(100,242,61);
+}
+
+.month_7 {
+  fill: rgb(140, 195, 56);
+}
+
+.month_8 {
+  fill: rgb(179, 179, 51);
+}
+
+.month_9 {
+  fill: rgb(220,102,46);
+}
+
+.month_10 {
+  fill: rgb(176, 117, 89);
+}
+
+.month_11 {
+  fill: rgb(133, 133, 133);
+}
+
+.month_12 {
+  fill: rgb(89, 148, 176);
+}

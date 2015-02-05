@@ -14,9 +14,11 @@
 }
 
 .cluster_center polygon {
-  fill: red;
   stroke: black;
   stroke-width: 0.5px;
+}
+
+.cluster_center_marker {
 }
 
 @keyframes cluster_center_highlight {
@@ -35,7 +37,8 @@
 }
 
 .bar {
-  fill: blue;
+  stroke: black;
+  stroke-width: 0.5px;
 }
 
 .axis text {

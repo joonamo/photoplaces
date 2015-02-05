@@ -128,23 +128,36 @@ function add_clustering_run_to_map(data){
                 .each(transform)
                 .each(tie_to_g_marker)
                 .attr("class", "marker")
+            .append("svg:g");
 
         marker.append("svg:polygon")
             .attr("points", function(cluster){
                 var out = [];
                 var last_phase = 0.0;
                 var last_length = 1.0 / 12.0 * (max_size_per_2 - 1);
+                var min_l = 0.0;//0.3 * max_size_per_2 * (Math.sqrt(cluster.properties.point_count_relative) * 0.7 + 0.3);
                 for (var j = 1.0; j <= 12.0; j += 1.0){
                     var phase = j / 12.0 * 2 * Math.PI;
+                    out.push([max_size_per_2 + Math.sin(last_phase) * min_l, max_size_per_2 - Math.cos(last_phase) * min_l]);
+                    out.push([max_size_per_2 + Math.sin(phase) * min_l, max_size_per_2 - Math.cos(phase) * min_l]);
+
+                    var second_poly = [];
                     var l = (Math.sqrt(cluster.properties["points_month_" + parseInt(j) + "_relative"]) * 0.7 + 0.3) * 
                         max_size_per_2 * (Math.sqrt(cluster.properties.point_count_relative) * 0.7 + 0.3);
-                    out.push([max_size_per_2 + Math.sin(last_phase) * l, max_size_per_2 - Math.cos(last_phase) * l]);
-                    out.push([max_size_per_2 + Math.sin(phase) * l, max_size_per_2 - Math.cos(phase) * l]);
-                    out.push([max_size_per_2, max_size_per_2])
+                    second_poly.push([max_size_per_2 + Math.sin(last_phase) * min_l, max_size_per_2 - Math.cos(last_phase) * min_l]);
+                    second_poly.push([max_size_per_2 + Math.sin(last_phase) * l, max_size_per_2 - Math.cos(last_phase) * l]);
+                    second_poly.push([max_size_per_2 + Math.sin(phase) * l, max_size_per_2 - Math.cos(phase) * l]);
+                    second_poly.push([max_size_per_2 + Math.sin(phase) * min_l, max_size_per_2 - Math.cos(phase) * min_l]);
+                    second_poly.push(second_poly[0]);
                     last_phase = phase;
+                    d3.select(this.parentElement)
+                        .append("svg:polygon")
+                        .attr("points", second_poly.join(" "))
+                        .attr("class", "month_" + parseInt(j));
                 }
                 return out.join(" ");
-            });
+            })
+            .attr("class", "cluster_center_marker");
 
         function transform(cluster) {
             var coords = cluster.geometry.geometries[0].coordinates;

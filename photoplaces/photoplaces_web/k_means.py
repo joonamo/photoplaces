@@ -243,8 +243,8 @@ class KMeans:
             month = entry["month"]
             for cluster in cluster_centers:
                 d = norm.dist(cluster["location_x_mean"], x) ** 2 +\
-                norm.dist(cluster["location_y_mean"], y) ** 2 +\
-                cm.cyclical_distance(cluster["month_mean"], month, month_cycle) ** 2
+                norm.dist(cluster["location_y_mean"], y) ** 2 +#\
+                #cm.cyclical_distance(cluster["month_mean"], month, month_cycle) ** 2
                 d = np.sqrt(d)
                 if d < lowest:
                     closest = cluster["cluster_id"]

@@ -137,11 +137,13 @@ class KMeans:
 
                 q.task_done()
 
+        threads = []
         q = Queue()
         for i in xrange(3):
             t = Thread(target = worker)
             t.daemon = True
             t.start()
+            threads.append(t)
 
         force = kwargs.get("force")
         all_clusters = kwargs.get("all_clusters")
@@ -156,6 +158,10 @@ class KMeans:
 
         print("Everything in queue, processing...")
         q.join()
+        for thread in threads:
+            print("killing thread")
+            thread.join()
+            print("it's gone!")
         print("Cluster center updates done!")
 
     def update_normalized_center(self, cluster):
@@ -290,15 +296,21 @@ class KMeans:
 
                 q.task_done()
 
+        threads = []
         for i in xrange(3):
             t = Thread(target = worker)
             t.daemon = True
             t.start()
+            threads.append(t)
 
 
         for cluster in all_clusters:
             q.put(cluster)
         q.join()
+        for thread in threads:
+            print("killing thread")
+            thread.join()
+            print("it's gone!")
 
         print("Entries added, updating cluster centers...")
         self.update_all_cluster_centers()

@@ -132,6 +132,9 @@ class KMeans:
         def worker():
             while True:
                 cluster = q.get()
+                if cluster is None:
+                    q.put(None)
+                    break
                 self.update_normalized_center(cluster)
                 print("Cluster center normalization done, %d in queue" % (q.qsize()))
 
@@ -158,6 +161,7 @@ class KMeans:
 
         print("Everything in queue, processing...")
         q.join()
+        q.put(None)
         for thread in threads:
             print("killing thread")
             thread.join()
@@ -269,6 +273,9 @@ class KMeans:
         def worker():
             while True:
                 cluster = q.get()
+                if cluster is None:
+                    q.put None
+                    break
                 retries = 1
                 while retries >= 0:
                     try:
@@ -307,6 +314,7 @@ class KMeans:
         for cluster in all_clusters:
             q.put(cluster)
         q.join()
+        q.put(None)
         for thread in threads:
             print("killing thread")
             thread.join()

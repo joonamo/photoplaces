@@ -274,7 +274,7 @@ class KMeans:
             while True:
                 cluster = q.get()
                 if cluster is None:
-                    q.put None
+                    q.put(None)
                     break
                 retries = 1
                 while retries >= 0:

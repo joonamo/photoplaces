@@ -236,6 +236,10 @@ class PhotoClusterRun(models.Model):
         except models.ObjectDoesNotExist:
             return False
 
+    def update_geometry(self):
+        for c in self.clusters.filter(center_dirty = True):
+            c.update_geometry()
+
     def cleanup_stats(self):
         clusters = self.clusters.annotate(photo_count = Count("photos")).order_by("-photo_count")
         max_points = clusters[0].photo_count
@@ -399,7 +403,7 @@ class PhotoCluster(models.Model):
 
     def update_bounding_shape(self):
         ch = MultiPoint([e.location for e in self.photos.all()]).convex_hull
-        if len(ch.coords) > 2:
+        if len(ch.coords[0]) > 2:
             self.bounding_shape = ch
         else:
             if ch.geom_typeid == 0:

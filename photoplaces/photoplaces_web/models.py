@@ -237,7 +237,7 @@ class PhotoClusterRun(models.Model):
             return False
 
     def update_geometry(self):
-        for c in self.clusters.filter(center_dirty = True):
+        for c in self.clusters.all():
             c.update_geometry()
 
     def cleanup_stats(self):

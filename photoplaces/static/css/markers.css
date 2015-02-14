@@ -4,8 +4,8 @@
 }
 
 .cluster_center svg {
-  width: 100px;
-  height: 100px;
+  width: 300px;
+  height: 300px;
   font: 10px sans-serif;
   animation-duration: 0.5s;
   animation-name: cluster_center_initial;

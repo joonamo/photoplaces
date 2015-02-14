@@ -6,6 +6,7 @@ var zoomTimeout;
 var cluster_center_overlay;
 var active_cluster_poly;
 var marker_image;
+var center_marker;
 var cluster_center_marker_icon;
 
 function createMap() {
@@ -15,6 +16,10 @@ function createMap() {
     marker_image = {
         url: STATIC_URL + "images/red_marker.png",
         anchor: new google.maps.Point(4,4)};
+    center_marker = {
+        url: STATIC_URL + "images/black_marker.png",
+        size: new google.maps.Size(20, 20),
+        anchor: new google.maps.Point(10,10)};
     cluster_center_marker_icon = {
         url: STATIC_URL + "images/transparent_marker_20_20.gif",
         size: new google.maps.Size(20, 20),
@@ -23,7 +28,8 @@ function createMap() {
     var mapOptions = {
       center: new google.maps.LatLng(0, 0),
       zoom: 2,
-      mapTypeId: google.maps.MapTypeId.ROADMAP
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      scaleControl: true
     };
     map = new google.maps.Map(document.getElementById("canvas"),
         mapOptions); 
@@ -117,9 +123,9 @@ function add_clustering_run_to_map(data){
         var layer = d3.select(this.getPanes().overlayMouseTarget).append("div")
             .attr("class", "cluster_center");
 
-        var projection = this.getProjection(),
-                max_size = 100;
-            var max_size_per_2 = max_size / 2;
+        var projection = this.getProjection();
+        var max_size = 300;
+        var max_size_per_2 = max_size / 2;
 
         var marker = layer.selectAll("svg")
                 .data(data.features)
@@ -142,8 +148,8 @@ function add_clustering_run_to_map(data){
                     out.push([max_size_per_2 + Math.sin(phase) * min_l, max_size_per_2 - Math.cos(phase) * min_l]);
 
                     var second_poly = [];
-                    var l = (Math.sqrt(cluster.properties["points_month_" + parseInt(j) + "_relative"]) * 0.7 + 0.3) * 
-                        max_size_per_2 * (Math.sqrt(cluster.properties.point_count_relative) * 0.7 + 0.3);
+                    var l = ( (cluster.properties["points_month_" + parseInt(j) + "_relative"]) * 0.9 + 0.1) * 
+                        max_size_per_2 * (cluster.properties.point_count_relative * 0.8 + 0.2);
                     second_poly.push([max_size_per_2 + Math.sin(last_phase) * min_l, max_size_per_2 - Math.cos(last_phase) * min_l]);
                     second_poly.push([max_size_per_2 + Math.sin(last_phase) * l, max_size_per_2 - Math.cos(last_phase) * l]);
                     second_poly.push([max_size_per_2 + Math.sin(phase) * l, max_size_per_2 - Math.cos(phase) * l]);
@@ -244,37 +250,69 @@ function add_clustering_run_to_map(data){
 }
 
 function finalize_clustering_run_to_map(clusters){
+    console.log("finalizing");
     map.fitBounds(bounds);
+}
+
+function show_clusters_lame() {
+    var $form = $("#clustering_run_get_form"), url = $form.attr("action");
+
+    // Fire some AJAX!
+    $.ajax({
+        type: "GET",
+        url: url,
+        dataType: "json",
+        data: {id: $("#clustering_run_get_form_select").val()}
+    })
+        .done(function(msg){
+            add_cluster_to_map(msg.features, 0);
+        });
+}
+
+function show_cluster_centers_lame() {
+    var $form = $("#clustering_run_get_form"), url = $form.attr("action");
+
+    // Fire some AJAX!
+    $.ajax({
+        type: "GET",
+        url: url,
+        dataType: "json",
+        data: {id: $("#clustering_run_get_form_select").val()}
+    })
+        .done(function(msg){
+            add_cluster_center_to_map(msg.features, 0);
+        });
 }
 
 function add_cluster_to_map(clusters, i){
     // Define the LatLng coordinates for the polygon's path.
     var cluster = clusters[i];
     var coords = [];
-    var center = cluster.geometry.coordinates;
-    bounds.extend(new google.maps.LatLng(
-            center[1],
-            center[0]));
-    for (var j = 0.0; j < 12.0; j += 1.0)
+    var points = cluster.geometry.geometries[1].coordinates[0];
+    for (var j = 0; j < points.length; j += 1)
     {   
-        var phase = j / 12.0 * 2 * Math.PI;
         coords.push(new google.maps.LatLng(
-            center[1] + Math.sin(phase) * 0.003, 
-            center[0] + Math.cos(phase) * 0.003));
+            points[j][1], points[j][0]));
     }
+
+    var center = cluster.geometry.geometries[0].coordinates;
+    var loc = new google.maps.LatLng(
+        center[1],
+        center[0])
+    bounds.extend(loc);
 
     // Construct the polygon.
     var poly = new google.maps.Polygon({
     paths: coords,
-    strokeColor: '#FF0000',
-    strokeOpacity: 0.8,
-    strokeWeight: 2,
+    strokeColor: '#000000',
+    strokeOpacity: 1.0,
+    strokeWeight: 1,
     fillColor: '#FF0000',
-    fillOpacity: 0.35
+    fillOpacity: 0.1
     });
 
     poly.setMap(map);
-    cluster_polygons.push(poly);
+    // cluster_polygons.push(poly);
 
     if (i < clusters.length - 1) {
         window.setTimeout(function(){add_cluster_to_map(clusters, i + 1);}, 1);
@@ -283,6 +321,30 @@ function add_cluster_to_map(clusters, i){
     }
 
 }
+
+function add_cluster_center_to_map(clusters, i){
+    // Define the LatLng coordinates for the polygon's path.
+    var cluster = clusters[i];
+    var coords = [];
+
+    var center = cluster.geometry.geometries[0].coordinates;
+    var loc = new google.maps.LatLng(
+        center[1],
+        center[0])
+    bounds.extend(loc);
+    var marker = new google.maps.Marker({
+        map: map,
+        position: loc
+    });
+
+    if (i < clusters.length - 1) {
+        window.setTimeout(function(){add_cluster_center_to_map(clusters, i + 1);}, 1);
+    } else {
+        finalize_clustering_run_to_map(clusters);
+    }
+
+}
+
 
 function show_all() {
     map.fitBounds(bounds);

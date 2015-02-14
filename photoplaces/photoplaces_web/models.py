@@ -254,6 +254,27 @@ class PhotoClusterRun(models.Model):
             cluster.stats_dirty = False
             cluster.save()
 
+    def show_some_stats(self, area_srid):
+        clusters = self.clusters.annotate(photo_count = Count("photos"))
+        point_counts = np.array([c.photo_count for c in clusters])
+        max_points = np.max(point_counts)
+        min_points = np.min(point_counts)
+        avg_points = np.average(point_counts)
+        median_points = np.median(point_counts)
+
+        def get_area(cluster):
+            shape = cluster.bounding_shape
+            shape.transform(area_srid)
+            return shape.area / (10 ** 6)
+        areas = np.array([get_area(c) for c in clusters])
+        max_area = np.max(areas)
+        min_area = np.min(areas)
+        avg_area = np.average(areas)
+        median_area = np.median(areas)
+
+        print("Total clusters: %d" % (clusters.count(), ))
+        print("max_points: %d, min_points: %d, avg_points: %f, median_points: %d" % (max_points, min_points, avg_points, median_points))
+        print("max_area: %f km^2, min_area: %f km^2, avg_area: %f km^2, median_area: %f km^2" % (max_area, min_area, avg_area, median_area))
 
 class PhotoCluster(models.Model):
     run = models.ForeignKey(

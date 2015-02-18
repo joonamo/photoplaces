@@ -134,7 +134,14 @@ function add_clustering_run_to_map(data){
                 .each(transform)
                 .each(tie_to_g_marker)
                 .attr("class", "marker")
+                .style("z-index", function(cluster) {
+                    return set_default_z_index(cluster);
+                })
             .append("svg:g");
+
+        function set_default_z_index(cluster) {
+            return parseInt(cluster.properties.point_count_relative * 1000);
+        }
 
         marker.append("svg:polygon")
             .attr("points", function(cluster){
@@ -180,15 +187,17 @@ function add_clustering_run_to_map(data){
             var marker = new google.maps.Marker({
                 map: map,
                 position: d,
-                icon: cluster_center_marker_icon});
+                icon: cluster_center_marker_icon,
+                zIndex: set_default_z_index(d3.select(this).data()[0])
+            });
             var cluster_center = this;
 
             google.maps.event.addListener(marker, 'mouseover', function() {
-                d3_cluster_center = d3.select(cluster_center)
+                d3_cluster_center = d3.select(cluster_center);
                 d3_cluster_center
                     .style("transform", "scale(3.0)")
                     .style("animation-name", "cluster_center_highlight")
-                    .style("z-index", 1);
+                    .style("z-index", 1001);
             });
 
             google.maps.event.addListener(marker, 'click', function() {
@@ -196,13 +205,13 @@ function add_clustering_run_to_map(data){
                     active_cluster_poly.setMap(null);
                 }
 
-                sidebar_display_cluster_info(d3_cluster_center[0][0].__data__.id);
+                sidebar_display_cluster_info(d3_cluster_center.data()[0]["id"]);
 
-                d3_cluster_center = d3.select(cluster_center)
+                d3_cluster_center = d3.select(cluster_center);
                 poly_bounds = new google.maps.LatLngBounds ();
 
                 // Define the LatLng coordinates for the polygon's path.
-                var coords = d3_cluster_center[0][0].__data__.geometry.geometries[1].coordinates[0];
+                var coords = d3_cluster_center.data()[0].geometry.geometries[1].coordinates[0];
                 var g_coords = [];
                 for (j in coords)
                 {   
@@ -232,7 +241,9 @@ function add_clustering_run_to_map(data){
                 d3.select(cluster_center)
                     .style("transform", "scale(1.0)")
                     .style("animation-name", "cluster_center_unhighlight")
-                    .style("z-index", -1);
+                    .style("z-index", function(cluster) {
+                        return set_default_z_index(cluster);
+                    });
             });
 
             bounds.extend(d);

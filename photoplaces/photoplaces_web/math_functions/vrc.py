@@ -23,7 +23,7 @@ def vrc(run):
         all_points_x = np.concatenate((all_points_x, points_x))
         all_points_y = np.concatenate((all_points_y, points_y))
 
-    print("ssw: " + string(ssw))
+    print("ssw: %f" % ssw)
 
     global_mean_x = np.mean(all_points_x) 
     global_mean_y = np.mean(all_points_y) 
@@ -32,11 +32,11 @@ def vrc(run):
     cluster_n =  np.array(cluster_n)
     ssb = np.sum(cluster_n * ((cluster_means_x - global_mean_x) ** 2 + (cluster_means_y - global_mean_y) ** 2))
 
-    print("ssb: " + string(ssb))
+    print("ssb: %f" % ssb)
 
     N = len(all_points_x)
     k = all_clusters.count()
 
-    print("N:" + string(N))
-    print("k:" + string(k))
+    print("N: %d" % N)
+    print("k: %d" % k)
     return (ssb / ssw) * ((N - k) / (k / 1))

@@ -1,6 +1,6 @@
 import numpy as np
 
-def vrc(run):
+def vrc(run, N):
     all_clusters = run.clusters.all()
     all_points_x = np.array([])
     all_points_y = np.array([])
@@ -34,7 +34,6 @@ def vrc(run):
 
     print("ssb: %f" % ssb)
 
-    N = len(all_points_x)
     k = all_clusters.count()
 
     print("N: %d" % N)

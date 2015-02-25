@@ -1,5 +1,6 @@
 import numpy as np
 
+# Calinski-Harabasz Criterion
 def vrc(run, N):
     all_clusters = run.clusters.all()
     all_points_x = np.array([])
@@ -38,4 +39,4 @@ def vrc(run, N):
 
     print("N: %d" % N)
     print("k: %d" % k)
-    return (ssb / ssw) * ((N - k) / (k / 1))
+    return (ssb / ssw) * ((N - k) / (k - 1))

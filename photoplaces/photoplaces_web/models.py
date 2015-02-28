@@ -221,6 +221,10 @@ class PhotoClusterRun(models.Model):
         related_name = "+",
         blank = True,
         null = True)
+    ui_sort_value = models.IntegerField(
+        "Sort value for ui.",
+        db_index = True,
+        default = 0)
 
     comment = models.TextField(
         default = "")

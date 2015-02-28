@@ -29,7 +29,7 @@
             <div class="form-group">
                 <select id="clustering_run_get_form_select" class="form-control">
                 {% for run in cluster_runs %}
-                 <option value="{{run.id}}">{{run.id}}: {{run.algorithm}}, "{{run.comment}}"</option>
+                 <option value="{{run.id}}">{% if run.ui_sort_value < 0 %}( {% endif %}{{run.id}}: {{run.algorithm}}, "{{run.comment}}"{% if run.ui_sort_value < 0 %}, not recommended ){% endif %}</option>
                 {% endfor %}
                 </select>
                 <input type="submit" value="Show" class="btn btn-primary">

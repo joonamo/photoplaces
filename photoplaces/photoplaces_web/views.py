@@ -23,11 +23,12 @@ def index(request):
     data = standard_data()
 
     cluster_runs = []
-    for run in PhotoClusterRun.objects.all():
+    for run in PhotoClusterRun.objects.order_by("-ui_sort_value"):
         run_info = {
             "id": run.id,
             "comment": run.comment,
-            "algorithm": run.get_algorithm_display()
+            "algorithm": run.get_algorithm_display(),
+            "ui_sort_value": run.ui_sort_value
         }
         cluster_runs.append(run_info)
     data["cluster_runs"] = cluster_runs

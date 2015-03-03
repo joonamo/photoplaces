@@ -4,6 +4,9 @@ var markers = {};
 var cluster_polygons = {};
 var zoomTimeout;
 var cluster_center_overlay;
+var white_overlay;
+var overlay_opacity = 50;
+var OPACITY_MAX_PIXELS = 57;
 var active_cluster_poly;
 var marker_image;
 var center_marker;
@@ -40,7 +43,99 @@ function createMap() {
     //     }
     //     zoomTimeout = window.setTimeout(query_points_for_view, 5000);
     // })
+    
+    window.setTimeout(add_white_overlay, 1000);
 
+}
+
+function add_white_overlay() {
+    if (typeof d3 == 'undefined')
+        window.setTimeout(add_white_overlay, 1000);
+    white_overlay = new google.maps.OverlayView();
+    white_overlay.onAdd = function () {
+        this.layer = d3.select(this.getPanes().overlayLayer).append("div")
+            .attr("class", "white_overlay");
+    };
+
+    white_overlay.draw = function () {
+        var overlayProjection = this.getProjection();
+
+        var bounds = this.map.getBounds();
+        var sw = overlayProjection.fromLatLngToDivPixel(bounds.getSouthWest());
+        var ne = overlayProjection.fromLatLngToDivPixel(bounds.getNorthEast());
+
+        var window_width = $(window).width();
+        var window_height = $(window).height()
+
+        this.layer
+            .style("left", (sw.x - window_width) + 'px')
+            .style("top", (ne.y - window_height) + 'px')
+            .style("width", (window_width * 2) + 'px')
+            .style("height", (window_height * 2) + 'px')
+            .style("background", "rgba(255,255,255," + 0.01 *  + overlay_opacity + ")");
+
+    };
+
+    white_overlay.setMap(map);
+    createOpacityControl(map, overlay_opacity);
+}
+
+// Thanks https://github.com/gavinharriss/google-maps-v3-opacity-control/!
+function createOpacityControl(map, opacity) {
+    var sliderImageUrl = STATIC_URL + "images/opacity-slider3d14.png";
+    
+    // Create main div to hold the control.
+    var opacityDiv = document.createElement('DIV');
+    opacityDiv.setAttribute("style", "margin:5px;overflow-x:hidden;overflow-y:hidden;background:url(" + sliderImageUrl + ") no-repeat;width:71px;height:21px;cursor:pointer;");
+
+    // Create knob
+    var opacityKnobDiv = document.createElement('DIV');
+    opacityKnobDiv.setAttribute("style", "padding:0;margin:0;overflow-x:hidden;overflow-y:hidden;background:url(" + sliderImageUrl + ") no-repeat -71px 0;width:14px;height:21px;");
+    opacityDiv.appendChild(opacityKnobDiv);
+
+    var opacityCtrlKnob = new ExtDraggableObject(opacityKnobDiv, {
+        restrictY: true,
+        container: opacityDiv
+    });
+
+    google.maps.event.addListener(opacityCtrlKnob, "dragend", function () {
+        set_overlay_opacity(opacityCtrlKnob.valueX());
+    });
+
+    // google.maps.event.addDomListener(opacityDiv, "click", function (e) {
+    //     var left = findPosLeft(this);
+    //     var x = e.pageX - left - 5; // - 5 as we're using a margin of 5px on the div
+    //     opacityCtrlKnob.setValueX(x);
+    //     set_overlay_opacity(x);
+    // });
+
+    map.controls[google.maps.ControlPosition.TOP_RIGHT].push(opacityDiv);
+
+    // Set initial value
+    var initialValue = OPACITY_MAX_PIXELS / (100 / opacity);
+    opacityCtrlKnob.setValueX(initialValue);
+    set_overlay_opacity(initialValue);
+}
+
+// Thanks https://github.com/gavinharriss/google-maps-v3-opacity-control/!
+function findPosLeft(obj) {
+    var curleft = 0;
+    if (obj.offsetParent) {
+        do {
+            curleft += obj.offsetLeft;
+        } while (obj = obj.offsetParent);
+        return curleft;
+    }
+    return undefined;
+}
+
+function set_overlay_opacity(v) {
+    overlay_opacity = (100.0 / OPACITY_MAX_PIXELS) * v;
+    if (!(typeof white_overlay.layer == "undefined"))
+    {
+        white_overlay.layer
+            .style("background", "rgba(255,255,255," + 0.01 * + overlay_opacity + ")");
+    }
 }
 
 function query_points_for_view() {
@@ -117,6 +212,7 @@ function add_clustering_run_to_map(data){
     });
     bounds = new google.maps.LatLngBounds ();
     cluster_polygons = [];
+
     cluster_center_overlay = new google.maps.OverlayView();
 
     cluster_center_overlay.onAdd = function() {

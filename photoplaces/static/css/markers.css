@@ -21,6 +21,11 @@
 .cluster_center_marker {
 }
 
+.white_overlay {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.5);
+}
+
 @keyframes cluster_center_highlight {
     from {transform: scale(1.0);}
     to {transform: scale(3.0);}

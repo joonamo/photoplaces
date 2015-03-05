@@ -58,7 +58,7 @@ function add_white_overlay() {
     white_overlay = new google.maps.OverlayView();
     white_overlay.onAdd = function () {
         this.designated_layer = d3.select(this.getPanes().overlayLayer);
-        this.layer = d3.select(this.getPanes().overlayLayer.parentNode).append("div")
+        this.layer = d3.select(this.getPanes().overlayLayer.parentNode.parentNode).append("div")
             .attr("class", "white_overlay")
             .style("background", "rgba(255,255,255," + 0.01 *  + overlay_opacity + ")");
 
@@ -86,10 +86,10 @@ function add_white_overlay() {
     var window_width = $(window).width();
     var window_height = $(window).height();
     this.layer
-        .style("left", (-window_width * 0.5) + 'px')
-        .style("top", (-window_height * 0.5) + 'px')
-        .style("width", (window_width * 2) + 'px')
-        .style("height", (window_height * 2) + 'px')
+        .style("left", /*(-window_width * 0.5)*/0 + 'px')
+        .style("top", /*(-window_height * 0.5)*/0 + 'px')
+        .style("width", (window_width) + 'px')
+        .style("height", (window_height) + 'px')
         .style("z-index", this.designated_layer.style("z-index"));
 
     };

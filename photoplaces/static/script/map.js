@@ -50,29 +50,47 @@ function createMap() {
 
 function add_white_overlay() {
     if (typeof d3 == 'undefined')
+    {
         window.setTimeout(add_white_overlay, 1000);
+        return;
+    }
+
     white_overlay = new google.maps.OverlayView();
     white_overlay.onAdd = function () {
-        this.layer = d3.select(this.getPanes().overlayLayer).append("div")
-            .attr("class", "white_overlay");
+        this.designated_layer = d3.select(this.getPanes().overlayLayer);
+        this.layer = d3.select(this.getPanes().overlayLayer.parentNode).append("div")
+            .attr("class", "white_overlay")
+            .style("background", "rgba(255,255,255," + 0.01 *  + overlay_opacity + ")");
+
+
     };
 
     white_overlay.draw = function () {
-        var overlayProjection = this.getProjection();
 
-        var bounds = this.map.getBounds();
-        var sw = overlayProjection.fromLatLngToDivPixel(bounds.getSouthWest());
-        var ne = overlayProjection.fromLatLngToDivPixel(bounds.getNorthEast());
+    //     var overlayProjection = this.getProjection();
 
-        var window_width = $(window).width();
-        var window_height = $(window).height()
+    //     var bounds = this.map.getBounds();
+    //     var sw = overlayProjection.fromLatLngToDivPixel(bounds.getSouthWest());
+    //     var ne = overlayProjection.fromLatLngToDivPixel(bounds.getNorthEast());
 
-        this.layer
-            .style("left", (sw.x - window_width) + 'px')
-            .style("top", (ne.y - window_height) + 'px')
-            .style("width", (window_width * 2) + 'px')
-            .style("height", (window_height * 2) + 'px')
-            .style("background", "rgba(255,255,255," + 0.01 *  + overlay_opacity + ")");
+    //     var window_width = $(window).width();
+    //     var window_height = $(window).height()
+
+    //     this.layer
+    //         .style("left", (sw.x - window_width) + 'px')
+    //         .style("top", (ne.y - window_height) + 'px')
+    //         .style("width", (window_width * 2) + 'px')
+    //         .style("height", (window_height * 2) + 'px')
+    //         .style("background", "rgba(255,255,255," + 0.01 *  + overlay_opacity + ")");
+
+    var window_width = $(window).width();
+    var window_height = $(window).height();
+    this.layer
+        .style("left", (-window_width * 0.5) + 'px')
+        .style("top", (-window_height * 0.5) + 'px')
+        .style("width", (window_width * 2) + 'px')
+        .style("height", (window_height * 2) + 'px')
+        .style("z-index", this.designated_layer.style("z-index"));
 
     };
 

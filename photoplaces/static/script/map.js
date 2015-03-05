@@ -57,7 +57,7 @@ function add_white_overlay() {
 
     white_overlay = new google.maps.OverlayView();
     white_overlay.onAdd = function () {
-        this.designated_layer = d3.select(this.getPanes().overlayLayer);
+        this.designated_layer = d3.select(this.getPanes().overlayLayer.parentNode);
         this.layer = d3.select(this.getPanes().overlayLayer.parentNode.parentNode).append("div")
             .attr("class", "white_overlay")
             .style("background", "rgba(255,255,255," + 0.01 *  + overlay_opacity + ")");
@@ -254,7 +254,7 @@ function add_clustering_run_to_map(data){
             .append("svg:g");
 
         function set_default_z_index(cluster) {
-            return parseInt(cluster.properties.point_count_relative * 1000);
+            return parseInt(cluster.properties.point_count_relative * 1000 + 100000);
         }
 
         marker.append("svg:polygon")
@@ -311,7 +311,7 @@ function add_clustering_run_to_map(data){
                 d3_cluster_center
                     .style("transform", "scale(3.0)")
                     .style("animation-name", "cluster_center_highlight")
-                    .style("z-index", 1001);
+                    .style("z-index", 1001001);
             });
 
             google.maps.event.addListener(marker, 'click', function() {

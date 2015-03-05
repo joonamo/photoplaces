@@ -43,7 +43,7 @@ function init_sidebar() {
             data[i] = [parseInt(i) + 1, data[i]];
         }
 
-        x.domain(data.map(function(d) { return d[0]; }));
+        x.domain(["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]);
         x_axis_visual.call(xAxis);
         y_axis_visual.call(yAxis);
 

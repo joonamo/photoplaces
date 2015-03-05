@@ -30,7 +30,7 @@ function createMap() {
 
     var mapOptions = {
       center: new google.maps.LatLng(0, 0),
-      zoom: 2,
+      zoom: 4,
       mapTypeId: google.maps.MapTypeId.ROADMAP,
       scaleControl: true
     };
@@ -44,58 +44,15 @@ function createMap() {
     //     zoomTimeout = window.setTimeout(query_points_for_view, 5000);
     // })
     
-    window.setTimeout(add_white_overlay, 1000);
+    $.getScript(STATIC_URL + "script/CustomTileOverlay.js", function() {
+        white_overlay = new CustomTileOverlay(map, overlay_opacity);
+        white_overlay.show();
 
-}
-
-function add_white_overlay() {
-    if (typeof d3 == 'undefined')
-    {
-        window.setTimeout(add_white_overlay, 1000);
-        return;
-    }
-
-    white_overlay = new google.maps.OverlayView();
-    white_overlay.onAdd = function () {
-        this.designated_layer = d3.select(this.getPanes().overlayLayer.parentNode);
-        this.layer = d3.select(this.getPanes().overlayLayer.parentNode.parentNode).append("div")
-            .attr("class", "white_overlay")
-            .style("background", "rgba(255,255,255," + 0.01 *  + overlay_opacity + ")");
-
-
-    };
-
-    white_overlay.draw = function () {
-
-    //     var overlayProjection = this.getProjection();
-
-    //     var bounds = this.map.getBounds();
-    //     var sw = overlayProjection.fromLatLngToDivPixel(bounds.getSouthWest());
-    //     var ne = overlayProjection.fromLatLngToDivPixel(bounds.getNorthEast());
-
-    //     var window_width = $(window).width();
-    //     var window_height = $(window).height()
-
-    //     this.layer
-    //         .style("left", (sw.x - window_width) + 'px')
-    //         .style("top", (ne.y - window_height) + 'px')
-    //         .style("width", (window_width * 2) + 'px')
-    //         .style("height", (window_height * 2) + 'px')
-    //         .style("background", "rgba(255,255,255," + 0.01 *  + overlay_opacity + ")");
-
-    var window_width = $(window).width();
-    var window_height = $(window).height();
-    this.layer
-        .style("left", /*(-window_width * 0.5)*/0 + 'px')
-        .style("top", /*(-window_height * 0.5)*/0 + 'px')
-        .style("width", (window_width) + 'px')
-        .style("height", (window_height) + 'px')
-        .style("z-index", this.designated_layer.style("z-index"));
-
-    };
-
-    white_overlay.setMap(map);
-    createOpacityControl(map, overlay_opacity);
+        google.maps.event.addListener(map, 'tilesloaded', function () {
+            white_overlay.deleteHiddenTiles(map.getZoom());
+        });
+        createOpacityControl(map, overlay_opacity);
+    });
 }
 
 // Thanks https://github.com/gavinharriss/google-maps-v3-opacity-control/!
@@ -147,12 +104,19 @@ function findPosLeft(obj) {
     return undefined;
 }
 
-function set_overlay_opacity(v) {
-    overlay_opacity = (100.0 / OPACITY_MAX_PIXELS) * v;
-    if (!(typeof white_overlay.layer == "undefined"))
-    {
-        white_overlay.layer
-            .style("background", "rgba(255,255,255," + 0.01 * + overlay_opacity + ")");
+function set_overlay_opacity(value) {
+    overlay_opacity = (100.0 / OPACITY_MAX_PIXELS) * value;
+    if (value < 0) value = 0;
+    if (value == 0) {
+        if (white_overlay.visible == true) {
+            white_overlay.hide();
+        }
+    }
+    else {
+        white_overlay.setOpacity(overlay_opacity);
+        if (white_overlay.visible == false) {
+            white_overlay.show();
+        }
     }
 }
 

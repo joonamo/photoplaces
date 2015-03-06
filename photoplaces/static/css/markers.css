@@ -62,49 +62,38 @@
 }*/
 
 .month_1 {
-  fill: rgb(46,164,220);
+  fill: rgb(69, 163, 236);
 }
-
 .month_2 {
-  fill: rgb(57, 180, 188);
+  fill: rgb(120, 187, 180);
 }
-
 .month_3 {
-  fill: rgb(68, 195, 156);
+  fill: rgb(171, 211, 124);
 }
-
 .month_4 {
-  fill: rgb(78, 210, 125);
+  fill: rgb(222, 236, 69);
 }
-
 .month_5 {
-  fill: rgb(89, 226, 92);
+  fill: rgb(194, 236, 59);
 }
-
 .month_6 {
-  fill: rgb(100,242,61);
+  fill: rgb(166, 237, 49);
 }
-
 .month_7 {
-  fill: rgb(140, 195, 56);
+  fill: rgb(138, 238, 40);
 }
-
 .month_8 {
-  fill: rgb(179, 179, 51);
+  fill: rgb(173, 193, 40);
 }
-
 .month_9 {
-  fill: rgb(220,102,46);
+  fill: rgb(208, 148, 40);
 }
-
 .month_10 {
-  fill: rgb(176, 117, 89);
+  fill: rgb(243, 103, 41);
 }
-
 .month_11 {
-  fill: rgb(133, 133, 133);
+  fill: rgb(185, 123, 106);
 }
-
 .month_12 {
-  fill: rgb(89, 148, 176);
+  fill: rgb(127, 143, 171);
 }

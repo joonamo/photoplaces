@@ -143,7 +143,7 @@ class NormalizedPhotoSet(models.Model):
 class NormalizedPhotoEntry(models.Model):
     actual_photo = models.ForeignKey(
         PhotoLocationEntry,
-        related_name = "+")
+        related_name = "normalized_entry")
     normalized_set = models.ForeignKey(
         NormalizedPhotoSet,
         related_name = "entries")

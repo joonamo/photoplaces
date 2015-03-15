@@ -1,4 +1,5 @@
 import numpy as np
+from cyclical_math import *
 
 # Calinski-Harabasz Criterion
 def vrc(run, N):

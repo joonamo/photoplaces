@@ -7,7 +7,7 @@ def vrc(run, N):
     all_points_x = np.array([])
     all_points_y = np.array([])
     all_points_month = np.array([])
-    month_cycle = run.clusters.all()[0].photos.all()[0].normalized_entry.normalized_set.month_z_cycle_length
+    month_cycle = run.clusters.all()[0].photos.all()[0].normalized_entry.get().normalized_set.month_z_cycle_length
     cluster_means_x = []
     cluster_means_y = []
     cluster_means_month = []
@@ -15,9 +15,9 @@ def vrc(run, N):
 
     ssw = 0.0
     for cluster in all_clusters:
-        points_x = np.array([photo.location_x for photo in cluster.photos.all().normalized_entry])
-        points_y = np.array([photo.location_y for photo in cluster.photos.all().normalized_entry])
-        points_month = np.array([photo.month for photo in cluster.photos.all().normalized_entry])
+        points_x = np.array([photo.location_x for photo in cluster.photos.all().normalized_entry.get()])
+        points_y = np.array([photo.location_y for photo in cluster.photos.all().normalized_entry.get()])
+        points_month = np.array([photo.month for photo in cluster.photos.all().normalized_entry.get()])
 
         m_x = np.mean(points_x)
         m_y = np.mean(points_y)

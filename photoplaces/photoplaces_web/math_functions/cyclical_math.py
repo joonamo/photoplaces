@@ -2,7 +2,7 @@ import numpy as np
 
 def cyclical_distance(a, b, cycle_length):
     linear_dist = abs(a - b)
-    return min(linear_dist, cycle_length - linear_dist)
+    return np.minimum(linear_dist, cycle_length - linear_dist)
 
 def cycle_v_to_rad(v, cycle_length):
     return (v % cycle_length) * np.pi * 2 / cycle_length

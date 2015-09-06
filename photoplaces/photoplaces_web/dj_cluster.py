@@ -59,11 +59,13 @@ class DjCluster:
                 photo = self.run.unprocessed.all()[0]
                 nbh_count, nbh, clusters = self.dj_neighborhood(photo, bbox_func, debug)
                 if nbh_count == 0:
-                    self.run.mark_processed(photo)
+                    pass
                 elif len(clusters) > 0:
                     self.dj_join(nbh, clusters, debug) 
                 else:
                     self.dj_cluster_new(nbh, debug)
+
+                self.run.mark_processed(photo)
 
                 count += 1
 
@@ -149,7 +151,7 @@ class DjCluster:
             for cluster in clusters[1:]:
                 target_cluster.photos.add(*[photo["id"] for photo in cluster.photos.all().values()])
                 cluster.delete()
-            self.run.unprocessed.remove(*[photo.pk for photo in nbh])
+            #self.run.unprocessed.remove(*[photo.pk for photo in nbh])
             target_cluster.photos.add(*[photo.pk for photo in nbh])
 
             return target_cluster
@@ -169,7 +171,7 @@ class DjCluster:
         try:
             target_cluster = PhotoCluster.create_cluster(self.run, nbh[0])
             target_cluster.photos.add(*[photo.pk for photo in nbh[1:]])
-            self.run.unprocessed.remove(*[photo.pk for photo in nbh])
+            #self.run.unprocessed.remove(*[photo.pk for photo in nbh])
 
             return target_cluster
 

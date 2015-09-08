@@ -68,7 +68,7 @@ class DjCluster:
                 while True:
                     photo = nbh_queue.get()
                     if photo is None:
-                        join_queue.put(None)
+                        join_queue.put((None, None))
                         nbh_queue.put(None)
                         self.write_message("Nbh Worker done")
                         break

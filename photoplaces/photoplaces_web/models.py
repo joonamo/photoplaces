@@ -428,13 +428,16 @@ class PhotoCluster(models.Model):
 
     def update_bounding_shape(self):
         ch = MultiPoint([e.location for e in self.photos.all()]).convex_hull
-        if len(ch.coords[0]) > 2:
+    
+        # Point
+        if ch.geom_typeid == 0:
+            self.bounding_shape = Polygon.from_bbox((ch.coords[0], ch.coords[1], ch.coords[0], ch.coords[1]))
+        # Polygon
+        elif len(ch.coords[0]) > 2:
             self.bounding_shape = ch
+        # Two-point line
         else:
-            if ch.geom_typeid == 0:
-                self.bounding_shape = Polygon.from_bbox((ch.coords[0], ch.coords[1], ch.coords[0], ch.coords[1]))
-            else:
-                self.bounding_shape = Polygon.from_bbox((ch.coords[0][0], ch.coords[0][1], ch.coords[1][0], ch.coords[1][1]))
+            self.bounding_shape = Polygon.from_bbox((ch.coords[0][0], ch.coords[0][1], ch.coords[1][0], ch.coords[1][1]))
         self.bounding_shape_dirty = False
         self.save()
         return self.bounding_shape
